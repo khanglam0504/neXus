@@ -9,6 +9,7 @@
  */
 
 import type * as activities from "../activities.js";
+import type * as activityEvents from "../activityEvents.js";
 import type * as agentActions from "../agentActions.js";
 import type * as agentMappings from "../agentMappings.js";
 import type * as agentMemory from "../agentMemory.js";
@@ -24,6 +25,7 @@ import type * as notifications from "../notifications.js";
 import type * as projects from "../projects.js";
 import type * as seed from "../seed.js";
 import type * as settings from "../settings.js";
+import type * as skills from "../skills.js";
 import type * as slackNotify from "../slackNotify.js";
 import type * as standup from "../standup.js";
 import type * as tasks from "../tasks.js";
@@ -37,6 +39,7 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   activities: typeof activities;
+  activityEvents: typeof activityEvents;
   agentActions: typeof agentActions;
   agentMappings: typeof agentMappings;
   agentMemory: typeof agentMemory;
@@ -52,6 +55,7 @@ declare const fullApi: ApiFromModules<{
   projects: typeof projects;
   seed: typeof seed;
   settings: typeof settings;
+  skills: typeof skills;
   slackNotify: typeof slackNotify;
   standup: typeof standup;
   tasks: typeof tasks;

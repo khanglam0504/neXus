@@ -34,11 +34,17 @@ export const create = mutation({
     });
 
     // Log activity using agentName from caller (not Linear API key)
-    await ctx.db.insert("activities", {
-      agent: createdBy,
-      action: "created_task",
-      target: taskId,
-      createdAt: now,
+    await ctx.db.insert("activities", { agent: createdBy, action: "created_task", target: taskId, createdAt: now });
+    // AGT-137: New unified activityEvents schema
+    await ctx.db.insert("activityEvents", {
+      agentId: createdBy,
+      agentName: args.agentName.toLowerCase(),
+      category: "task",
+      eventType: "created",
+      title: `${args.agentName} created task: ${args.title}`,
+      taskId: taskId,
+      projectId: args.projectId,
+      timestamp: now,
     });
 
     // Notify assignee if assigned
@@ -180,6 +186,22 @@ export const updateStatus = mutation({
       metadata: { from: task.status, to: args.status },
       createdAt: now,
     });
+    // AGT-137: New unified activityEvents schema
+    await ctx.db.insert("activityEvents", {
+      agentId: updatedBy,
+      agentName: args.agentName.toLowerCase(),
+      category: "task",
+      eventType: "status_change",
+      title: `${args.agentName} moved task to ${args.status}`,
+      taskId: args.id,
+      linearIdentifier: task.linearIdentifier,
+      projectId: task.projectId,
+      metadata: {
+        fromStatus: task.status,
+        toStatus: args.status,
+      },
+      timestamp: now,
+    });
 
     // Notify on status change
     if (task.assignee && args.status === "review") {
@@ -231,6 +253,20 @@ export const assign = mutation({
       metadata: { assignee: args.assignee },
       createdAt: now,
     });
+    // AGT-137: New unified activityEvents schema
+    const assignedByAgent = await ctx.db.get(args.assignedBy);
+    const assigneeAgent = await ctx.db.get(args.assignee);
+    await ctx.db.insert("activityEvents", {
+      agentId: args.assignedBy,
+      agentName: assignedByAgent?.name?.toLowerCase() ?? "unknown",
+      category: "task",
+      eventType: "assigned",
+      title: `${assignedByAgent?.name ?? "Unknown"} assigned task to ${assigneeAgent?.name ?? "Unknown"}`,
+      taskId: args.id,
+      linearIdentifier: task.linearIdentifier,
+      projectId: task.projectId,
+      timestamp: now,
+    });
 
     // Notify assignee
     await ctx.db.insert("notifications", {
@@ -271,6 +307,18 @@ export const assignAgent = mutation({
       target: args.taskId,
       metadata: { assignee: args.agentId },
       createdAt: now,
+    });
+    // AGT-137: New unified activityEvents schema
+    await ctx.db.insert("activityEvents", {
+      agentId: args.agentId,
+      agentName: agent.name.toLowerCase(),
+      category: "task",
+      eventType: "assigned",
+      title: `${agent.name} was assigned: ${task.title}`,
+      taskId: args.taskId,
+      linearIdentifier: task.linearIdentifier,
+      projectId: task.projectId,
+      timestamp: now,
     });
 
     // Create notification for the assignee
@@ -325,6 +373,20 @@ export const update = mutation({
       metadata: updates,
       createdAt: now,
     });
+    // AGT-137: New unified activityEvents schema
+    const updatedByAgent = await ctx.db.get(updatedBy);
+    const taskForUpdate = await ctx.db.get(id);
+    await ctx.db.insert("activityEvents", {
+      agentId: updatedBy,
+      agentName: updatedByAgent?.name?.toLowerCase() ?? "unknown",
+      category: "task",
+      eventType: "updated",
+      title: `${updatedByAgent?.name ?? "Unknown"} updated task`,
+      taskId: id,
+      linearIdentifier: taskForUpdate?.linearIdentifier,
+      projectId: taskForUpdate?.projectId,
+      timestamp: now,
+    });
   },
 });
 
@@ -336,11 +398,25 @@ export const remove = mutation({
   },
   handler: async (ctx, args) => {
     // Log activity before deletion
+    const now = Date.now();
+    const deletedByAgent = await ctx.db.get(args.deletedBy);
+    const taskToDelete = await ctx.db.get(args.id);
     await ctx.db.insert("activities", {
       agent: args.deletedBy,
       action: "deleted_task",
       target: args.id,
-      createdAt: Date.now(),
+      createdAt: now,
+    });
+    // AGT-137: New unified activityEvents schema
+    await ctx.db.insert("activityEvents", {
+      agentId: args.deletedBy,
+      agentName: deletedByAgent?.name?.toLowerCase() ?? "unknown",
+      category: "task",
+      eventType: "deleted",
+      title: `${deletedByAgent?.name ?? "Unknown"} deleted task: ${taskToDelete?.title ?? "Unknown"}`,
+      linearIdentifier: taskToDelete?.linearIdentifier,
+      projectId: taskToDelete?.projectId,
+      timestamp: now,
     });
 
     await ctx.db.delete(args.id);
@@ -417,6 +493,23 @@ export const upsertByLinearId = mutation({
           },
           createdAt: now,
         });
+        // AGT-137: New unified activityEvents schema
+        await ctx.db.insert("activityEvents", {
+          agentId: activityAgentId,
+          agentName: args.agentName.toLowerCase(),
+          category: "task",
+          eventType: "status_change",
+          title: `${args.agentName} moved ${args.linearIdentifier} to ${newStatus}`,
+          taskId: existingTask._id,
+          linearIdentifier: args.linearIdentifier,
+          projectId: existingTask.projectId,
+          metadata: {
+            fromStatus: oldStatus,
+            toStatus: newStatus,
+            source: "linear_sync",
+          },
+          timestamp: now,
+        });
       }
 
       return {
@@ -447,15 +540,30 @@ export const upsertByLinearId = mutation({
 
       await ctx.db.insert("activities", {
         agent: activityAgentId,
-        action: "updated_task_status",
+        action: "created_task",
         target: taskId,
         metadata: {
-          from: null,
-          to: args.status,
+          status: args.status,
           source: "linear_sync",
           linearIdentifier: args.linearIdentifier,
         },
         createdAt: now,
+      });
+      // AGT-137: New unified activityEvents schema
+      await ctx.db.insert("activityEvents", {
+        agentId: activityAgentId,
+        agentName: args.agentName.toLowerCase(),
+        category: "task",
+        eventType: "created",
+        title: `${args.agentName} synced ${args.linearIdentifier}: ${args.title}`,
+        taskId: taskId,
+        linearIdentifier: args.linearIdentifier,
+        projectId: args.projectId,
+        metadata: {
+          toStatus: args.status,
+          source: "linear_sync",
+        },
+        timestamp: now,
       });
 
       return {

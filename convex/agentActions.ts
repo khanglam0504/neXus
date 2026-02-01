@@ -87,6 +87,24 @@ export const completeTask = mutation({
         },
         createdAt: now,
       });
+      // AGT-137: New unified activityEvents schema
+      const eventType = args.action === "completed" ? "completed" :
+                        args.action === "in_progress" ? "started" : "commented";
+      await ctx.db.insert("activityEvents", {
+        agentId,
+        agentName: args.agent,
+        category: "task",
+        eventType,
+        title: `${args.agent.toUpperCase()} ${eventType} ${args.ticket}`,
+        description: args.summary,
+        linearIdentifier: args.ticket,
+        metadata: {
+          filesChanged: args.filesChanged,
+          commitHash: args.commitHash,
+          source: "agent_api",
+        },
+        timestamp: now,
+      });
 
       return {
         success: true,
@@ -125,6 +143,28 @@ export const completeTask = mutation({
         statusChange: newStatus ? { from: oldStatus, to: newStatus } : undefined,
       },
       createdAt: now,
+    });
+    // AGT-137: New unified activityEvents schema
+    const eventType = args.action === "completed" ? "completed" :
+                      args.action === "in_progress" ? "started" : "commented";
+    await ctx.db.insert("activityEvents", {
+      agentId,
+      agentName: args.agent,
+      category: "task",
+      eventType,
+      title: `${args.agent.toUpperCase()} ${eventType} ${task.linearIdentifier ?? args.ticket}`,
+      description: args.summary,
+      taskId: task._id,
+      linearIdentifier: task.linearIdentifier,
+      projectId: task.projectId,
+      metadata: {
+        fromStatus: newStatus ? oldStatus : undefined,
+        toStatus: newStatus,
+        filesChanged: args.filesChanged,
+        commitHash: args.commitHash,
+        source: "agent_api",
+      },
+      timestamp: now,
     });
 
     // 5. Create a message/comment on the task (for thread visibility)

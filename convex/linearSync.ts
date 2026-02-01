@@ -130,9 +130,11 @@ export const syncAll = internalAction({
         throw new Error("EVOX project not found. Run seed first.");
       }
 
-      // AGT-134: Map Linear assignee name → taskAgentName for Standup attribution (Son→max, Sam→sam, Leo→leo)
+      // AGT-134 + AGT-136: Map Linear assignee name → taskAgentName for Standup attribution
+      // Supports both old (Son) and new (Max) naming
       const assigneeNameToTaskAgent: Record<string, string> = {
         son: "max",
+        max: "max",
         sam: "sam",
         leo: "leo",
       };

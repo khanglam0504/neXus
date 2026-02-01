@@ -18,6 +18,9 @@ const roleToColor = {
 /** Time filter preset for standup (AGT-131) */
 export type StandupTimeFilter = "full" | "morning" | "afternoon" | "evening";
 
+/** AGT-138: Standup range — Day (single day), Week (last 7 days), 30 Days (last 30 days) */
+export type StandupRangeMode = "day" | "week" | "30days";
+
 /** User's local day + optional time window as UTC ms for Convex standup */
 function getDayRangeWithTimeFilter(
   d: Date,
@@ -45,11 +48,35 @@ function getDayRangeWithTimeFilter(
   return { startTs: start, endTs: end };
 }
 
+/** AGT-138: Compute startTs/endTs for Day / Week / 30 Days */
+function getRangeForMode(
+  rangeMode: StandupRangeMode,
+  date: Date,
+  timeFilter: StandupTimeFilter
+): { startTs: number; endTs: number } {
+  if (rangeMode === "day") {
+    return getDayRangeWithTimeFilter(date, timeFilter);
+  }
+  const now = new Date();
+  const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999).getTime();
+  const daysAgo = rangeMode === "week" ? 7 : 30;
+  const startDate = new Date(now);
+  startDate.setDate(startDate.getDate() - daysAgo);
+  const startOfRange = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate()).getTime();
+  return { startTs: startOfRange, endTs: endOfToday };
+}
+
 const TIME_FILTER_LABELS: Record<StandupTimeFilter, string> = {
   full: "Full day",
   morning: "Morning (00:00–12:00)",
   afternoon: "Afternoon (12:00–18:00)",
   evening: "Evening (18:00–24:00)",
+};
+
+const RANGE_MODE_LABELS: Record<StandupRangeMode, string> = {
+  day: "Day",
+  week: "Week",
+  "30days": "30 Days",
 };
 
 const SYNC_INTERVAL_MS = 60 * 1000; // 60s (AGT-133)
@@ -64,10 +91,11 @@ function sanitizeIdentifier(linearIdentifier?: string | null): string {
 export default function StandupPage() {
   const [date, setDate] = useState(new Date());
   const [timeFilter, setTimeFilter] = useState<StandupTimeFilter>("full");
+  const [rangeMode, setRangeMode] = useState<StandupRangeMode>("day");
   const [syncState, setSyncState] = useState<"idle" | "syncing" | "success">("idle");
   const dayRange = useMemo(
-    () => getDayRangeWithTimeFilter(date, timeFilter),
-    [date, timeFilter]
+    () => getRangeForMode(rangeMode, date, timeFilter),
+    [rangeMode, date, timeFilter]
   );
 
   const standupData = useQuery(api.standup.getDaily, dayRange);
@@ -176,16 +204,18 @@ export default function StandupPage() {
   return (
     <div className="h-full overflow-y-auto bg-black p-8">
       <div className="mx-auto max-w-7xl space-y-6">
-        {/* Header with Date Navigation */}
+        {/* Header with Range (Day/Week/30 Days) + Date Navigation — AGT-138 */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div>
-              <h1 className="text-2xl font-semibold text-zinc-50">Daily Standup</h1>
+              <h1 className="text-2xl font-semibold text-zinc-50">Standup</h1>
               <p className="text-sm text-zinc-500">
-                {formatDate(date)}
-                {timeFilter !== "full" && (
+                {rangeMode === "day" && formatDate(date)}
+                {rangeMode === "day" && timeFilter !== "full" && (
                   <span className="ml-2 text-zinc-400">— {TIME_FILTER_LABELS[timeFilter]}</span>
                 )}
+                {rangeMode === "week" && "Last 7 days"}
+                {rangeMode === "30days" && "Last 30 days"}
               </p>
             </div>
             <Button
@@ -215,41 +245,59 @@ export default function StandupPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            {/* Time filter (AGT-131) */}
+            {/* AGT-138: Range mode — Day / Week / 30 Days */}
             <select
-              value={timeFilter}
-              onChange={(e) => setTimeFilter(e.target.value as StandupTimeFilter)}
+              value={rangeMode}
+              onChange={(e) => setRangeMode(e.target.value as StandupRangeMode)}
               className="rounded-lg border border-zinc-800 bg-zinc-900/50 px-3 py-2 text-sm text-zinc-300 focus:border-zinc-600 focus:outline-none focus:ring-1 focus:ring-zinc-600"
             >
-              {(Object.keys(TIME_FILTER_LABELS) as StandupTimeFilter[]).map((key) => (
+              {(Object.keys(RANGE_MODE_LABELS) as StandupRangeMode[]).map((key) => (
                 <option key={key} value={key}>
-                  {TIME_FILTER_LABELS[key]}
+                  {RANGE_MODE_LABELS[key]}
                 </option>
               ))}
             </select>
 
-            <button
-              onClick={goToPrevDay}
-              className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-2 text-zinc-400 transition-colors hover:bg-zinc-900 hover:text-zinc-50"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </button>
-
-            {!isToday(date) && (
-              <button
-                onClick={goToToday}
-                className="rounded-lg border border-zinc-800 bg-zinc-900/50 px-4 py-2 text-sm font-medium text-zinc-400 transition-colors hover:bg-zinc-900 hover:text-zinc-50"
+            {/* Time filter (AGT-131) — only when Day */}
+            {rangeMode === "day" && (
+              <select
+                value={timeFilter}
+                onChange={(e) => setTimeFilter(e.target.value as StandupTimeFilter)}
+                className="rounded-lg border border-zinc-800 bg-zinc-900/50 px-3 py-2 text-sm text-zinc-300 focus:border-zinc-600 focus:outline-none focus:ring-1 focus:ring-zinc-600"
               >
-                Today
-              </button>
+                {(Object.keys(TIME_FILTER_LABELS) as StandupTimeFilter[]).map((key) => (
+                  <option key={key} value={key}>
+                    {TIME_FILTER_LABELS[key]}
+                  </option>
+                ))}
+              </select>
             )}
 
-            <button
-              onClick={goToNextDay}
-              className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-2 text-zinc-400 transition-colors hover:bg-zinc-900 hover:text-zinc-50"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </button>
+            {/* Date nav — only when Day */}
+            {rangeMode === "day" && (
+              <>
+                <button
+                  onClick={goToPrevDay}
+                  className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-2 text-zinc-400 transition-colors hover:bg-zinc-900 hover:text-zinc-50"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                {!isToday(date) && (
+                  <button
+                    onClick={goToToday}
+                    className="rounded-lg border border-zinc-800 bg-zinc-900/50 px-4 py-2 text-sm font-medium text-zinc-400 transition-colors hover:bg-zinc-900 hover:text-zinc-50"
+                  >
+                    Today
+                  </button>
+                )}
+                <button
+                  onClick={goToNextDay}
+                  className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-2 text-zinc-400 transition-colors hover:bg-zinc-900 hover:text-zinc-50"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </>
+            )}
           </div>
         </div>
 
@@ -286,7 +334,9 @@ export default function StandupPage() {
           </div>
         ) : (
           <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-8 text-center text-zinc-500">
-            No agents or tasks for this date. Run seed and sync Linear, then try Sync Now.
+            {rangeMode === "day"
+              ? "No agents or tasks for this date. Run seed and sync Linear, then try Sync Now."
+              : "No agents or tasks for this range. Run seed and sync Linear, then try Sync Now."}
           </div>
         )}
       </div>

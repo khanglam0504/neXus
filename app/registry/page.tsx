@@ -7,9 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BookOpen } from "lucide-react";
 
 /**
- * AGT-108: AGENTS.md Registry Display (Operating Manual)
- * Displays shared AGENTS.md content. Fetches from settings (key: agents_md).
- * When agentMemory supports type "agents_md", switch to api.agentMemory.getByType.
+ * AGT-138: Registry → Operating Manual. AGENTS.md content from settings (key: agents_md).
  */
 export default function RegistryPage() {
   const agentsMdContent = useQuery(api.settings.get, { key: "agents_md" });
@@ -21,16 +19,16 @@ export default function RegistryPage() {
         <div className="border-b border-zinc-800 pb-4">
           <h1 className="text-2xl font-semibold text-zinc-50 flex items-center gap-2">
             <BookOpen className="h-6 w-6 text-zinc-400" />
-            Agent Registry (AGENTS.md)
+            Operating Manual
           </h1>
           <p className="text-sm text-zinc-500 mt-1">
-            Shared operating manual — read-only
+            Shared operating manual (AGENTS.md) — read-only
           </p>
         </div>
 
         <Card className="mt-6 border-zinc-800 bg-zinc-900/50">
           <CardHeader>
-            <CardTitle className="text-zinc-50 text-lg">Operating Manual</CardTitle>
+            <CardTitle className="text-zinc-50 text-lg">Content</CardTitle>
           </CardHeader>
           <CardContent>
             {content ? (

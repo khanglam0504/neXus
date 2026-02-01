@@ -20,8 +20,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
 
-// Initialize Convex client
-const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
+// Lazily initialize Convex client (avoid build-time evaluation)
+function getConvexClient() {
+  const url = process.env.NEXT_PUBLIC_CONVEX_URL;
+  if (!url) {
+    throw new Error("NEXT_PUBLIC_CONVEX_URL environment variable is not set");
+  }
+  return new ConvexHttpClient(url);
+}
 
 // Valid values for validation
 const VALID_AGENTS = ["leo", "sam", "max", "ella"] as const;
@@ -78,6 +84,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Call Convex mutation
+    const convex = getConvexClient();
     const result = await convex.mutation(api.agentActions.completeTask, {
       agent: body.agent,
       ticket: body.ticket,

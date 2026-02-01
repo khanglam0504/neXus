@@ -117,6 +117,59 @@ export default defineSchema({
     .index("by_agent", ["agent"])
     .index("by_created_at", ["createdAt"]),
 
+  // AGT-137: Unified Activity Events (single source of truth for activity feed)
+  // Typed categories, proper entity references, human-readable display fields
+  activityEvents: defineTable({
+    // WHO: Agent that performed the action
+    agentId: v.id("agents"),
+    agentName: v.string(), // Denormalized for fast display (max, sam, leo)
+
+    // WHAT: Event category and type
+    category: v.union(
+      v.literal("task"),     // Task status changes, assignments
+      v.literal("git"),      // Commits, pushes, PRs
+      v.literal("deploy"),   // Vercel deployments
+      v.literal("system"),   // Sync, errors, admin actions
+      v.literal("message")   // Agent communications
+    ),
+    eventType: v.string(),   // e.g., "status_change", "push", "deploy_success"
+
+    // CONTEXT: What was affected
+    taskId: v.optional(v.id("tasks")),
+    linearIdentifier: v.optional(v.string()), // AGT-XXX for display
+    projectId: v.optional(v.id("projects")),
+
+    // DISPLAY: Human-readable summary
+    title: v.string(),       // Short: "SAM completed AGT-137"
+    description: v.optional(v.string()), // Longer details if needed
+
+    // METADATA: Structured data for the event type
+    metadata: v.optional(v.object({
+      // Task events
+      fromStatus: v.optional(v.string()),
+      toStatus: v.optional(v.string()),
+      // Git events
+      commitHash: v.optional(v.string()),
+      branch: v.optional(v.string()),
+      filesChanged: v.optional(v.array(v.string())),
+      // Deploy events
+      deploymentUrl: v.optional(v.string()),
+      deploymentStatus: v.optional(v.string()),
+      // Error events
+      errorMessage: v.optional(v.string()),
+      // Generic
+      source: v.optional(v.string()), // "linear_sync", "webhook", "manual"
+    })),
+
+    // TIMESTAMPS
+    timestamp: v.number(),
+  })
+    .index("by_timestamp", ["timestamp"])
+    .index("by_agent", ["agentId", "timestamp"])
+    .index("by_category", ["category", "timestamp"])
+    .index("by_task", ["taskId", "timestamp"])
+    .index("by_linearId", ["linearIdentifier", "timestamp"]),
+
   // Notification system
   notifications: defineTable({
     to: v.id("agents"),

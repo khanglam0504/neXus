@@ -15,23 +15,41 @@ interface Message {
   timestamp: Date;
 }
 
-interface Activity {
+// AGT-137: New unified activityEvents schema
+interface ActivityEvent {
   _id: string;
-  agent: {
+  agentId: string;
+  agentName: string;
+  agent?: {
     name: string;
     avatar: string;
     role: "pm" | "backend" | "frontend";
-    status: "online" | "idle" | "offline";
+    status: "online" | "idle" | "offline" | "busy";
   } | null;
-  action: string;
-  target: string;
-  createdAt: number;
-  metadata?: Record<string, unknown>;
+  category: "task" | "git" | "deploy" | "system" | "message";
+  eventType: string;
+  title: string;
+  description?: string;
+  taskId?: string;
+  linearIdentifier?: string;
+  projectId?: string;
+  metadata?: {
+    fromStatus?: string;
+    toStatus?: string;
+    commitHash?: string;
+    branch?: string;
+    filesChanged?: string[];
+    deploymentUrl?: string;
+    deploymentStatus?: string;
+    errorMessage?: string;
+    source?: string;
+  };
+  timestamp: number;
 }
 
 interface TaskActivitySidebarProps {
   messages: Message[];
-  activities: Activity[];
+  activities: ActivityEvent[];
   onSendMessage?: (message: string) => void;
 }
 

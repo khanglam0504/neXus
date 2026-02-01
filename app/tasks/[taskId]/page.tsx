@@ -54,42 +54,41 @@ const mockMessages = [
   },
 ];
 
+// AGT-137: Mock activities use new unified activityEvents schema
 const mockActivities = [
   {
     _id: "1",
-    agent: {
-      name: "Leo",
-      avatar: "LO",
-      role: "frontend" as const,
-      status: "online" as const,
-    },
-    action: "changed status from",
-    target: "Todo to In Progress",
-    createdAt: Date.now() - 2 * 60 * 60 * 1000,
+    agentId: "mock-leo",
+    agentName: "leo",
+    agent: { name: "Leo", avatar: "LO", role: "frontend" as const, status: "online" as const },
+    category: "task" as const,
+    eventType: "status_change",
+    title: "Leo moved AGT-70",
+    linearIdentifier: "AGT-70",
+    metadata: { fromStatus: "todo", toStatus: "in_progress" },
+    timestamp: Date.now() - 2 * 60 * 60 * 1000,
   },
   {
     _id: "2",
-    agent: {
-      name: "Sam",
-      avatar: "SM",
-      role: "pm" as const,
-      status: "online" as const,
-    },
-    action: "assigned to",
-    target: "Leo",
-    createdAt: Date.now() - 5 * 60 * 60 * 1000,
+    agentId: "mock-sam",
+    agentName: "sam",
+    agent: { name: "Sam", avatar: "SM", role: "backend" as const, status: "online" as const },
+    category: "task" as const,
+    eventType: "assigned",
+    title: "Sam assigned AGT-70 to Leo",
+    linearIdentifier: "AGT-70",
+    timestamp: Date.now() - 5 * 60 * 60 * 1000,
   },
   {
     _id: "3",
-    agent: {
-      name: "Sam",
-      avatar: "SM",
-      role: "pm" as const,
-      status: "online" as const,
-    },
-    action: "created task",
-    target: "AGT-70",
-    createdAt: Date.now() - 3 * 24 * 60 * 60 * 1000,
+    agentId: "mock-sam",
+    agentName: "sam",
+    agent: { name: "Sam", avatar: "SM", role: "backend" as const, status: "online" as const },
+    category: "task" as const,
+    eventType: "created",
+    title: "Sam created AGT-70",
+    linearIdentifier: "AGT-70",
+    timestamp: Date.now() - 3 * 24 * 60 * 60 * 1000,
   },
 ];
 

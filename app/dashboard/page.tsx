@@ -37,27 +37,40 @@ const mockAgents = [
   },
 ] as const;
 
+// AGT-137: Mock activities use new unified activityEvents schema
 const mockActivities = [
   {
     _id: "1",
+    agentId: "mock-leo",
+    agentName: "leo",
     agent: { name: "Leo", avatar: "LO", role: "frontend" as const, status: "online" as const },
-    action: "completed task",
-    target: "AGT-69",
-    createdAt: Date.now() - 5 * 60 * 1000,
+    category: "task" as const,
+    eventType: "completed",
+    title: "Leo completed AGT-69",
+    linearIdentifier: "AGT-69",
+    timestamp: Date.now() - 5 * 60 * 1000,
   },
   {
     _id: "2",
-    agent: { name: "Sam", avatar: "SM", role: "pm" as const, status: "online" as const },
-    action: "created task",
-    target: "Phase 2 Planning",
-    createdAt: Date.now() - 15 * 60 * 1000,
+    agentId: "mock-sam",
+    agentName: "sam",
+    agent: { name: "Sam", avatar: "SM", role: "backend" as const, status: "online" as const },
+    category: "task" as const,
+    eventType: "created",
+    title: "Sam created Phase 2 Planning",
+    timestamp: Date.now() - 15 * 60 * 1000,
   },
   {
     _id: "3",
+    agentId: "mock-leo",
+    agentName: "leo",
     agent: { name: "Leo", avatar: "LO", role: "frontend" as const, status: "online" as const },
-    action: "updated task",
-    target: "AGT-68",
-    createdAt: Date.now() - 25 * 60 * 1000,
+    category: "task" as const,
+    eventType: "status_change",
+    title: "Leo moved AGT-68",
+    linearIdentifier: "AGT-68",
+    metadata: { toStatus: "in_progress" },
+    timestamp: Date.now() - 25 * 60 * 1000,
   },
 ];
 
@@ -73,7 +86,8 @@ const SYNC_INTERVAL_MS = 60 * 1000; // 60s (AGT-133)
 export default function DashboardPage() {
   const agents = useQuery(api.agents.list);
   const tasks = useQuery(api.tasks.list, {});
-  const activities = useQuery(api.activities.listWithAgents, { limit: 50 });
+  // AGT-137: Unified activity feed from activityEvents (single table)
+  const activities = useQuery(api.activityEvents.listWithAgents, { limit: 50 });
   const triggerSync = useAction(api.linearSync.triggerSync);
   const syncIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -107,14 +121,14 @@ export default function DashboardPage() {
     };
   }, [tasks]);
 
+  // AGT-137: Use new activityEvents schema (agentId, timestamp)
   const lastActivityByAgent = useMemo(() => {
     if (!Array.isArray(activities) || activities.length === 0) return {} as Record<string, number>;
     const byAgent: Record<string, number> = {};
     for (const a of activities) {
-      const agentDoc = (a as { agent: { _id?: string } | null })?.agent;
-      const id = agentDoc?._id;
+      const id = (a as { agentId?: string }).agentId;
       if (!id) continue;
-      const ts = (a as { createdAt?: number }).createdAt;
+      const ts = (a as { timestamp?: number }).timestamp;
       if (ts == null) continue;
       if (!byAgent[id] || ts > byAgent[id]) byAgent[id] = ts;
     }

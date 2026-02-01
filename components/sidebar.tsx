@@ -12,7 +12,7 @@ const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Standup", href: "/standup", icon: Calendar },
   { name: "Agents", href: "/agents", icon: Users },
-  { name: "Registry", href: "/registry", icon: BookOpen },
+  { name: "Operating Manual", href: "/registry", icon: BookOpen },
   { name: "Tasks", href: "/tasks", icon: ListTodo },
   { name: "Messages", href: "/messages", icon: MessageSquare },
   { name: "Activity", href: "/activity", icon: Activity },
