@@ -14,6 +14,9 @@ interface StandupAgentCardProps {
   color: "blue" | "green" | "purple";
   done: Task[];
   wip: Task[];
+  /** Backlog = status backlog or todo */
+  backlog: Task[];
+  /** Blocked = keyword "blocked" in title/description only */
   blocked: Task[];
 }
 
@@ -29,6 +32,7 @@ export function StandupAgentCard({
   color,
   done,
   wip,
+  backlog,
   blocked,
 }: StandupAgentCardProps) {
   return (
@@ -75,21 +79,35 @@ export function StandupAgentCard({
         )}
       </div>
 
-      {/* Blocked Section */}
+      {/* Backlog Section (status backlog or todo) */}
       <div className="space-y-2">
-        <h4 className="text-xs font-semibold uppercase tracking-wide text-red-500">
-          Blocked ({blocked.length})
+        <h4 className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
+          Backlog ({backlog.length})
         </h4>
-        {blocked.length > 0 ? (
+        {backlog.length > 0 ? (
+          <div className="space-y-1">
+            {backlog.map((task) => (
+              <StandupTaskItem key={task.id} {...task} />
+            ))}
+          </div>
+        ) : (
+          <p className="px-3 py-2 text-xs text-zinc-600">No backlog tasks</p>
+        )}
+      </div>
+
+      {/* Blocked Section (keyword "blocked" only) */}
+      {blocked.length > 0 && (
+        <div className="space-y-2">
+          <h4 className="text-xs font-semibold uppercase tracking-wide text-red-500">
+            Blocked ({blocked.length})
+          </h4>
           <div className="space-y-1">
             {blocked.map((task) => (
               <StandupTaskItem key={task.id} {...task} />
             ))}
           </div>
-        ) : (
-          <p className="px-3 py-2 text-xs text-zinc-600">No blocked tasks</p>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
