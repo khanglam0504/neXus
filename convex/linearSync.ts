@@ -143,6 +143,7 @@ export const syncAll = internalAction({
           }
 
           return await ctx.runMutation(api.tasks.upsertByLinearId, {
+            agentName: "max",
             projectId: evoxProject._id,
             linearId: issue.linearId,
             linearIdentifier: issue.linearIdentifier,
@@ -152,7 +153,6 @@ export const syncAll = internalAction({
             status: issue.status,
             priority: issue.priority,
             assignee: assigneeId,
-            createdBy: systemAgent._id,
             createdAt: issue.createdAt,
             updatedAt: issue.updatedAt,
           });
