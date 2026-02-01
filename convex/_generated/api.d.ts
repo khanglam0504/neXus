@@ -9,6 +9,9 @@
  */
 
 import type * as activities from "../activities.js";
+import type * as agentActions from "../agentActions.js";
+import type * as agentMappings from "../agentMappings.js";
+import type * as agentMessages from "../agentMessages.js";
 import type * as agents from "../agents.js";
 import type * as crons from "../crons.js";
 import type * as documents from "../documents.js";
@@ -32,6 +35,9 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   activities: typeof activities;
+  agentActions: typeof agentActions;
+  agentMappings: typeof agentMappings;
+  agentMessages: typeof agentMessages;
   agents: typeof agents;
   crons: typeof crons;
   documents: typeof documents;
