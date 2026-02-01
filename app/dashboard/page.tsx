@@ -70,54 +70,60 @@ const agentNameToCanonical: Record<string, string> = {
 
 export default function DashboardPage() {
   const agents = useQuery(api.agents.list);
-  // BUG 5: Same source as Standup — ALL tasks so stats match (in_progress, done counts)
   const tasks = useQuery(api.tasks.list, {});
   const activities = useQuery(api.activities.listWithAgents, { limit: 50 });
-  const unreadCounts = useQuery(api.agentMessages.getUnreadCounts);
-  useQuery(api.agentMessages.getUnreadMessages, { agentName: "max" });
+  // Unread counts: skip query on dashboard to avoid crash when agentMappings not seeded or Convex not yet deployed; badge shows 0
+  const unreadCounts: Record<string, number> | undefined = undefined;
 
-  const displayAgents = agents && agents.length > 0 ? agents : mockAgents;
-  const displayActivities = activities && activities.length > 0 ? activities : mockActivities;
+  const agentsList = Array.isArray(agents) && agents.length > 0 ? agents : mockAgents;
+  const activitiesList =
+    Array.isArray(activities) && activities.length > 0 ? activities : mockActivities;
 
-  const taskStats = tasks
-    ? {
-        total: tasks.length,
-        inProgress: tasks.filter((t: { status: string }) => t.status === "in_progress").length,
-        completed: tasks.filter((t: { status: string }) => t.status === "done").length,
-      }
-    : { total: 0, inProgress: 0, completed: 0 };
+  const taskStats = useMemo(() => {
+    if (!Array.isArray(tasks) || tasks.length === 0) {
+      return { total: 0, inProgress: 0, completed: 0 };
+    }
+    return {
+      total: tasks.length,
+      inProgress: tasks.filter((t: { status?: string }) => t.status === "in_progress").length,
+      completed: tasks.filter((t: { status?: string }) => t.status === "done").length,
+    };
+  }, [tasks]);
 
-  // BUG 3: Last activity per agent from activities table (max createdAt per agent)
   const lastActivityByAgent = useMemo(() => {
-    if (!activities?.length) return {} as Record<string, number>;
+    if (!Array.isArray(activities) || activities.length === 0) return {} as Record<string, number>;
     const byAgent: Record<string, number> = {};
     for (const a of activities) {
-      const agentDoc = (a as { agent: { _id: string } | null }).agent;
+      const agentDoc = (a as { agent: { _id?: string } | null })?.agent;
       const id = agentDoc?._id;
       if (!id) continue;
-      const ts = (a as { createdAt: number }).createdAt;
+      const ts = (a as { createdAt?: number }).createdAt;
+      if (ts == null) continue;
       if (!byAgent[id] || ts > byAgent[id]) byAgent[id] = ts;
     }
     return byAgent;
   }, [activities]);
 
-  // BUG 4: Current task = first in_progress assigned to agent; display "EVOX-1: Title"
   const currentTaskByAgent = useMemo(() => {
-    if (!tasks?.length || !agents?.length) return {} as Record<string, string>;
+    if (!Array.isArray(tasks) || tasks.length === 0 || !Array.isArray(agents) || agents.length === 0) {
+      return {} as Record<string, string>;
+    }
     const map: Record<string, string> = {};
     for (const agent of agents) {
-      const a = agent as { _id: string; currentTask?: string };
+      const a = agent as { _id?: string; currentTask?: string };
+      const aid = a?._id;
+      if (!aid) continue;
       const inProgress = tasks.find(
-        (t: { assignee?: string; status: string }) =>
-          t.assignee === a._id && t.status === "in_progress"
+        (t: { assignee?: string; status?: string }) =>
+          t.assignee === aid && t.status === "in_progress"
       );
       const byCurrent = a.currentTask
-        ? tasks.find((t: { _id: string }) => t._id === a.currentTask)
+        ? tasks.find((t: { _id?: string }) => t._id === a.currentTask)
         : null;
       const task = inProgress ?? byCurrent;
       if (task) {
-        const t = task as { title: string; linearIdentifier?: string };
-        map[a._id] = t.linearIdentifier ? `${t.linearIdentifier}: ${t.title}` : t.title;
+        const t = task as { title?: string; linearIdentifier?: string };
+        map[aid] = t.linearIdentifier ? `${t.linearIdentifier}: ${t.title ?? ""}` : (t.title ?? "");
       }
     }
     return map;
@@ -176,23 +182,28 @@ export default function DashboardPage() {
           <div>
             <h2 className="mb-4 text-lg font-semibold text-zinc-50">Agents</h2>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {displayAgents.map((agent: any, idx: number) => {
+              {agentsList.map((agent: Record<string, unknown>, idx: number) => {
+                const name = (agent.name as string) ?? "Unknown";
                 const canonical =
-                  agentNameToCanonical[agent.name] ?? agent.name?.toLowerCase?.();
-                const unreadCount = unreadCounts?.[canonical] ?? 0;
-                const lastActivityTs = agent._id ? lastActivityByAgent[agent._id] : undefined;
-                const lastActivityAt = lastActivityTs ? new Date(lastActivityTs) : undefined;
-                const lastHeartbeat = agent.lastSeen ? new Date(agent.lastSeen) : agent.lastHeartbeat;
-                const currentTask =
-                  agent._id ? currentTaskByAgent[agent._id] : agent.currentTask;
+                  agentNameToCanonical[name] ?? String(name).toLowerCase();
+                const unreadCount =
+                  unreadCounts && typeof unreadCounts === "object" && canonical in unreadCounts
+                    ? Number((unreadCounts as Record<string, number>)[canonical]) ?? 0
+                    : 0;
+                const agentId = agent._id as string | undefined;
+                const lastActivityTs = agentId ? lastActivityByAgent[agentId] : undefined;
+                const lastActivityAt = lastActivityTs != null ? new Date(lastActivityTs) : undefined;
+                const lastSeen = agent.lastSeen as number | undefined;
+                const lastHeartbeat = lastSeen != null ? new Date(lastSeen) : (agent.lastHeartbeat as Date | undefined);
+                const currentTask = agentId ? currentTaskByAgent[agentId] : (agent.currentTask as string | undefined);
                 return (
                   <AgentCard
-                    key={agent._id ?? idx}
-                    name={agent.name}
-                    role={agent.role}
-                    status={agent.status}
+                    key={agentId ?? idx}
+                    name={name}
+                    role={(agent.role as "pm" | "backend" | "frontend") ?? "pm"}
+                    status={(agent.status as "online" | "idle" | "offline" | "busy") ?? "offline"}
                     currentTask={currentTask}
-                    avatar={agent.avatar}
+                    avatar={(agent.avatar as string) ?? "?"}
                     lastHeartbeat={lastHeartbeat}
                     lastActivityAt={lastActivityAt}
                     unreadCount={unreadCount}
@@ -204,7 +215,7 @@ export default function DashboardPage() {
 
           {/* Activity Feed */}
           <div>
-            <ActivityFeed activities={displayActivities} />
+            <ActivityFeed activities={activitiesList} />
           </div>
       </div>
     </div>
