@@ -27,8 +27,15 @@ interface Task {
   labels?: string[];
 }
 
+interface Agent {
+  _id: Id<"agents">;
+  name: string;
+  avatar: string;
+}
+
 interface TaskBoardProps {
   tasks: Task[];
+  agents?: Agent[];
 }
 
 const columns: { status: TaskStatus; title: string }[] = [
@@ -44,9 +51,8 @@ const priorityColors: Record<TaskPriority, string> = {
   low: "border-blue-500/20 bg-blue-500/10 text-blue-500",
 };
 
-function TaskCard({ task }: { task: Task }) {
+function TaskCard({ task, agents }: { task: Task; agents?: Agent[] }) {
   const [showAssignMenu, setShowAssignMenu] = useState(false);
-  const agents = useQuery(api.agents.list);
   const assignAgent = useMutation(api.tasks.assignAgent);
 
   const handleAssign = async (agentId: Id<"agents">, e: React.MouseEvent) => {
@@ -162,7 +168,11 @@ function TaskCard({ task }: { task: Task }) {
   );
 }
 
-export function TaskBoard({ tasks }: TaskBoardProps) {
+export function TaskBoard({ tasks, agents }: TaskBoardProps) {
+  // Single query at board level, shared across all cards
+  const agentsQuery = useQuery(api.agents.list);
+  const agentsList = agents ?? agentsQuery;
+
   return (
     <div className="grid grid-cols-4 gap-6">
       {columns.map((column) => {
@@ -185,7 +195,7 @@ export function TaskBoard({ tasks }: TaskBoardProps) {
             {/* Task Cards */}
             <div className="space-y-3">
               {columnTasks.length > 0 ? (
-                columnTasks.map((task) => <TaskCard key={task.id} task={task} />)
+                columnTasks.map((task) => <TaskCard key={task.id} task={task} agents={agentsList} />)
               ) : (
                 <div className="rounded-lg border border-dashed border-zinc-800 bg-zinc-900/20 p-8 text-center">
                   <p className="text-xs text-zinc-600">No tasks</p>

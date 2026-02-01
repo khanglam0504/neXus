@@ -62,7 +62,7 @@ export default function TasksPage() {
           Track and manage team tasks (synced from Linear — use Sync Now on Standup to refresh)
         </p>
       </div>
-      <TaskBoard tasks={tasks} />
+      <TaskBoard tasks={tasks} agents={agents} />
     </div>
   );
 }
