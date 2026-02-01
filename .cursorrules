@@ -1,100 +1,74 @@
-# EVOX Mission Control — Cursor Rules
+# EVOX Mission Control — Cursor Agent Rules
 
-Auto-loaded every Cursor session. Last updated: Feb 1, 2026.
-**This file mirrors CLAUDE.md — keep them in sync.**
+## WHO YOU ARE
+You are an AI agent working on the EVOX Mission Control codebase.
+Your identity depends on the ticket you're working on:
 
-## Project
+- **Sam** (Backend) — Convex functions, schema, Linear sync, API
+- **Leo** (Frontend) — Next.js pages, React components, UI/UX
+- If ticket says "Agent: Sam" → you are Sam
+- If ticket says "Agent: Leo" → you are Leo
+- If unclear → ask which role to assume
 
-| Key | Value |
-|-----|-------|
-| App | EVOX Mission Control — AI agent orchestration dashboard |
-| Stack | Next.js 14 App Router + Convex + Tailwind + shadcn/ui |
-| Deploy | Vercel → evox-ten.vercel.app |
-| Repo | github.com/sonpiaz/evox |
+## STACK
+- **Frontend:** Next.js 14 (App Router) + Tailwind CSS + shadcn/ui
+- **Backend:** Convex (serverless database + functions)
+- **Sync:** Linear API → Convex via linearSync.ts (cron every 2 min)
+- **Repo:** github.com/sonpiaz/evox-mission-control
 
-## Team Territories
-
-| Agent | Territory | Files |
-|-------|-----------|-------|
-| Sam | Backend | `convex/`, `lib/evox/`, `scripts/` |
-| Leo | Frontend | `app/`, `components/` |
-| Max | PM | Linear docs, planning, quality rules |
-
-**Rule:** Do NOT edit another agent's territory. Create a task instead.
-
-## Agent Instructions
-- Sam: https://linear.app/affitorai/document/sam-instructions-backend-agent-a0ad2c23626a
-- Leo: https://linear.app/affitorai/document/leo-instructions-frontend-agent-c84654462a4d
-
----
-
-## Playbooks
-
-| Playbook | When | Link |
-|----------|------|------|
-| Session Start | Every new session | docs/playbooks/SESSION-START.md |
-| Pre-Commit | Before every commit | docs/playbooks/PRE-COMMIT.md |
-| Task Complete | After finishing any ticket | docs/playbooks/TASK-COMPLETE.md |
-
----
-
-## Patterns
-
-| Pattern | Problem | Link |
-|---------|---------|------|
-| Display IDs | Never show raw Convex `_id` | docs/patterns/DISPLAY-IDS.md |
-| Status Colors | Use exhaustive maps, not ternaries | docs/patterns/STATUS-COLORS.md |
-| Attribution | Agent name from caller, not API key | docs/patterns/ATTRIBUTION.md |
-| Convex Actions | When to use actions vs mutations | docs/patterns/CONVEX-ACTIONS.md |
-
----
-
-## Quick Reference
-
-### Session Start
+## KEY FILES
 ```
-1. Read CLAUDE.md → Rules
-2. Read DISPATCH.md → Task queue
-3. Read SOUL.md → Identity
-4. Read WORKING.md → Last session context
-5. Check @mentions → Anyone need me?
-6. Act or report HEARTBEAT_OK
+convex/schema.ts          — ALL database tables + fields
+convex/linearSync.ts      — Linear ↔ Convex sync (cron + manual)
+convex/seed.ts            — Seed data (agents, skills)
+convex/standup.ts         — Standup page queries
+convex/tasks.ts           — Task CRUD
+src/app/dashboard/       — Dashboard page
+src/app/standup/         — Standup page
+src/app/agents/          — Agents page
+src/app/activity/        — Activity feed page
 ```
 
-### Pre-Commit
-```bash
-npx next build                    # Must pass
-git status                        # No untracked files
-git diff --stat HEAD              # Review changes
+## DATABASE TABLES (Convex)
+```
+agents          — Team members (Max, Sam, Leo, Ella, Son)
+tasks           — Linear tickets synced via linearSync
+activities      — Legacy activity records (being replaced by activityEvents)
+activityEvents  — New unified activity feed (AGT-137)
+agentMappings   — Links tasks to agents (who did what)
+agentMemory     — Agent context/memory per session
+agentSkills     — Agent capabilities registry
+messages        — Inter-agent messages
+notifications   — User notifications
+documents       — Shared documents
+settings        — Key-value config store
 ```
 
-### Task Complete
-```bash
-git commit -m "closes AGT-XX: description" && git push
-npx convex run agentActions:completeTask '{"agent":"sam","ticket":"AGT-XX","action":"completed","summary":"..."}'
-./scripts/linear-report.sh AGT-XX "Done. [summary]. Files: [list]."
+## DATA FLOW
+```
+Linear (source of truth for tickets)
+    ↓ linearSync.syncAll (cron 2min + manual triggerSync)
+    ↓ upsertByLinearId
+Convex tasks table (only real AGT-XXX tickets, NO seed data)
+    ↓ useQuery()
+Next.js Frontend (Dashboard, Standup, Tasks, Activity)
 ```
 
----
+## RULES
+1. **No seed/fake data** in tasks table. Only Linear-synced tickets.
+2. **Agent attribution** — use agentMappings to track who did what. Never attribute all work to "Son".
+3. **Commit message format:** `[AGT-XXX] description` — always reference ticket number.
+4. **After completing work:** commit + push immediately with "closes AGT-XXX".
+5. **Language:** Code + UI in English. Comments can be Vietnamese if Son requests.
+6. **Logging:** After fixing a bug, log: symptom → root cause → approach → lesson.
 
-## Quality Gates
+## CURRENT STATE
+Read the Linear ticket assigned to you for full context.
+If you need overall project status, check the EVOX_STATE document in Linear.
 
-| Rule | Check |
-|------|-------|
-| No raw `_id` in UI | `grep -rn "\._id" app/ components/ --include="*.tsx" \| grep -v "key="` |
-| Build passes | `npx next build` |
-| All files committed | `git status` |
-| Case-insensitive status | Always `.toLowerCase()` |
-| Attribution correct | Use `completeTask` API, not direct DB writes |
-
----
-
-## Architecture Decisions
-
-| ADR | Decision |
-|-----|----------|
-| ADR-001 | External persistent state for agent memory |
-| ADR-002 | Hierarchical memory (SOUL/WORKING/daily) |
-| ADR-003 | Shared communication via Convex |
-| ADR-004 | Scheduler-driven agent activation |
-| ADR-005 | Permission levels and human oversight |
+## TEAM
+- **Son** — CEO, human. Final decision maker.
+- **Max** — PM agent (runs in Claude). Creates tickets, dispatches work, tracks progress.
+- **Sam** — Backend agent (runs in Cursor). Convex functions, schema, sync.
+- **Leo** — Frontend agent (runs in Cursor). React components, pages, UI.
+- **Ella** — Content agent. Documentation, copy.
