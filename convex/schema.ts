@@ -8,6 +8,7 @@ export default defineSchema({
     role: v.union(v.literal("pm"), v.literal("backend"), v.literal("frontend")),
     status: v.union(
       v.literal("online"),
+      v.literal("idle"),
       v.literal("offline"),
       v.literal("busy")
     ),
@@ -103,6 +104,7 @@ export default defineSchema({
     agent: v.id("agents"),
     status: v.union(
       v.literal("online"),
+      v.literal("idle"),
       v.literal("offline"),
       v.literal("busy")
     ),

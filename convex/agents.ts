@@ -40,6 +40,7 @@ export const getByStatus = query({
   args: {
     status: v.union(
       v.literal("online"),
+      v.literal("idle"),
       v.literal("offline"),
       v.literal("busy")
     ),
@@ -58,6 +59,7 @@ export const updateStatus = mutation({
     id: v.id("agents"),
     status: v.union(
       v.literal("online"),
+      v.literal("idle"),
       v.literal("offline"),
       v.literal("busy")
     ),
@@ -109,6 +111,7 @@ export const heartbeat = mutation({
     id: v.id("agents"),
     status: v.union(
       v.literal("online"),
+      v.literal("idle"),
       v.literal("offline"),
       v.literal("busy")
     ),
