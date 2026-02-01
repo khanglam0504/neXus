@@ -1,7 +1,7 @@
 "use node";
 
 import { v } from "convex/values";
-import { action, mutation, internalMutation } from "./_generated/server";
+import { action, internalAction, mutation, internalMutation } from "./_generated/server";
 import { api, internal } from "./_generated/api";
 import { Id } from "./_generated/dataModel";
 import { LinearClient } from "@linear/sdk";
@@ -94,10 +94,10 @@ async function fetchLinearIssues(apiKey: string) {
 }
 
 /**
- * Sync tasks from Linear to Convex
+ * Sync tasks from Linear to Convex (Internal - called by cron)
  * Fetches issues from Linear EVOX project and upserts them
  */
-export const syncFromLinear = action({
+export const syncAll = internalAction({
   args: {},
   handler: async (ctx): Promise<{ success: boolean; total: number; created: number; updated: number; message: string }> => {
     const apiKey = process.env.LINEAR_API_KEY;
@@ -173,5 +173,16 @@ export const syncFromLinear = action({
       console.error("Linear sync failed:", error);
       throw new Error(`Linear sync failed: ${error}`);
     }
+  },
+});
+
+/**
+ * Public wrapper for manual sync trigger from frontend
+ * Calls the internal syncAll action
+ */
+export const triggerSync = action({
+  args: {},
+  handler: async (ctx): Promise<{ success: boolean; total: number; created: number; updated: number; message: string }> => {
+    return await ctx.runAction(internal.linearSync.syncAll, {});
   },
 });
