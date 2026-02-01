@@ -69,13 +69,9 @@ const agentNameToCanonical: Record<string, string> = {
 };
 
 export default function DashboardPage() {
-  const projects = useQuery(api.projects.list);
-  const evoxProjectId = useMemo(
-    () => projects?.find((p: { name: string }) => p.name === "EVOX")?._id,
-    [projects]
-  );
   const agents = useQuery(api.agents.list);
-  const tasks = useQuery(api.tasks.list, evoxProjectId ? { projectId: evoxProjectId } : "skip");
+  // BUG 5: Same source as Standup — ALL tasks so stats match (in_progress, done counts)
+  const tasks = useQuery(api.tasks.list, {});
   const activities = useQuery(api.activities.listWithAgents, { limit: 50 });
   const unreadCounts = useQuery(api.agentMessages.getUnreadCounts);
   useQuery(api.agentMessages.getUnreadMessages, { agentName: "max" });
@@ -83,7 +79,6 @@ export default function DashboardPage() {
   const displayAgents = agents && agents.length > 0 ? agents : mockAgents;
   const displayActivities = activities && activities.length > 0 ? activities : mockActivities;
 
-  // BUG 5: Same source as Tasks page — EVOX project only so Completed count matches
   const taskStats = tasks
     ? {
         total: tasks.length,
@@ -106,7 +101,7 @@ export default function DashboardPage() {
     return byAgent;
   }, [activities]);
 
-  // BUG 4: Current task = first in_progress task assigned to agent (or task by agent.currentTask)
+  // BUG 4: Current task = first in_progress assigned to agent; display "EVOX-1: Title"
   const currentTaskByAgent = useMemo(() => {
     if (!tasks?.length || !agents?.length) return {} as Record<string, string>;
     const map: Record<string, string> = {};
@@ -120,7 +115,10 @@ export default function DashboardPage() {
         ? tasks.find((t: { _id: string }) => t._id === a.currentTask)
         : null;
       const task = inProgress ?? byCurrent;
-      if (task) map[a._id] = (task as { title: string }).title;
+      if (task) {
+        const t = task as { title: string; linearIdentifier?: string };
+        map[a._id] = t.linearIdentifier ? `${t.linearIdentifier}: ${t.title}` : t.title;
+      }
     }
     return map;
   }, [tasks, agents]);

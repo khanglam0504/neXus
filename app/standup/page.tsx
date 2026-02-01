@@ -22,6 +22,13 @@ function toDayRange(d: Date): { startTs: number; endTs: number } {
   return { startTs: start, endTs: end };
 }
 
+/** Never show raw Convex _id — identifier column only linearIdentifier or "—" (BUG 2) */
+function sanitizeIdentifier(linearIdentifier?: string | null): string {
+  if (!linearIdentifier || typeof linearIdentifier !== "string") return "—";
+  if (linearIdentifier.length >= 26 && /^[a-z0-9]+$/i.test(linearIdentifier)) return "—";
+  return linearIdentifier;
+}
+
 export default function StandupPage() {
   const [date, setDate] = useState(new Date());
   const [syncState, setSyncState] = useState<"idle" | "syncing" | "success">("idle");
@@ -91,10 +98,11 @@ export default function StandupPage() {
     if (!standupData?.agents) return [];
     return standupData.agents.map((report) => {
       const color = roleToColor[report.agent.role] ?? "blue";
-      const toTask = (t: { id: string; title: string; linearIdentifier?: string }) => ({
+      // BUG 2: identifier column ONLY linearIdentifier ?? "—", NEVER raw _id
+      const toTask = (t: { id: string; title: string; linearIdentifier?: string | null }) => ({
         id: t.id,
         title: t.title,
-        identifier: t.linearIdentifier ?? t.id,
+        identifier: sanitizeIdentifier(t.linearIdentifier),
       });
       return {
         name: report.agent.name,
@@ -102,6 +110,7 @@ export default function StandupPage() {
         color,
         done: report.completed.map(toTask),
         wip: report.inProgress.map(toTask),
+        backlog: report.backlog.map(toTask),
         blocked: report.blocked.map(toTask),
       };
     });
@@ -109,6 +118,7 @@ export default function StandupPage() {
 
   const totalDone = standupSummary?.tasksCompleted ?? 0;
   const totalWip = standupSummary?.tasksInProgress ?? 0;
+  const totalBacklog = standupSummary?.tasksBacklog ?? 0;
   const totalBlocked = standupSummary?.tasksBlocked ?? 0;
 
   const isLoading = standupData === undefined || standupSummary === undefined;
@@ -179,6 +189,7 @@ export default function StandupPage() {
         <StandupSummary
           doneCount={totalDone}
           wipCount={totalWip}
+          backlogCount={totalBacklog}
           blockedCount={totalBlocked}
         />
 

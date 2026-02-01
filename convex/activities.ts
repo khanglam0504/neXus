@@ -110,16 +110,17 @@ export const listWithAgents = query({
             }
           }
         }
-        // Never show raw Convex _id to user (BUG 1 / AGT-99 pattern)
+        // Never show raw Convex _id to user — 26+ alphanumeric = Convex id (BUG 1 round 2)
         const rawTarget = activity.target;
-        const hideRawId =
+        const looksLikeConvexId =
           typeof rawTarget === "string" &&
-          rawTarget.length >= 15 &&
+          rawTarget.length >= 26 &&
           /^[a-z0-9]+$/i.test(rawTarget);
+        const fallback = looksLikeConvexId ? "—" : (rawTarget && typeof rawTarget === "string" ? rawTarget : "—");
         return {
           ...activity,
           agent,
-          targetDisplay: targetDisplay ?? (hideRawId ? "—" : rawTarget),
+          targetDisplay: (targetDisplay && targetDisplay.length > 0 ? targetDisplay : null) ?? fallback,
         };
       })
     );

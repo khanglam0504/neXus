@@ -70,19 +70,25 @@ export function ActivityFeed({ activities }: ActivityFeedProps) {
                         {activity.agent?.name || "Unknown"}
                       </span>{" "}
                       {actionLabels[activity.action] || activity.action}
-                      {(activity.targetDisplay ?? activity.target) && (
-                        <>
-                          {" "}
-                          <span className="text-zinc-500">
-                            {activity.targetDisplay ??
-                              (typeof activity.target === "string" &&
-                              activity.target.length >= 15 &&
-                              /^[a-z0-9]+$/i.test(activity.target)
-                                ? "—"
-                                : activity.target)}
-                          </span>
-                        </>
-                      )}
+                      {(() => {
+                        const raw = activity.target;
+                        const looksLikeConvexId =
+                          typeof raw === "string" &&
+                          raw.length >= 26 &&
+                          /^[a-z0-9]+$/i.test(raw);
+                        const display =
+                          activity.targetDisplay && activity.targetDisplay.length > 0
+                            ? activity.targetDisplay
+                            : looksLikeConvexId
+                              ? "—"
+                              : raw;
+                        return display ? (
+                          <>
+                            {" "}
+                            <span className="text-zinc-500">{display}</span>
+                          </>
+                        ) : null;
+                      })()}
                     </p>
                     <p className="mt-1 text-xs text-zinc-600">
                       {formatDistanceToNow(activity.createdAt, { addSuffix: true })}
