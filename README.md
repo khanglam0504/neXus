@@ -5,7 +5,8 @@
 <h1 align="center">EVOX — Mission Control</h1>
 
 <p align="center">
-  <strong>An AI agent orchestration system built from first principles.</strong>
+  <strong>The COO for your AI engineering team.</strong><br/>
+  <em>An agent orchestration system built from first principles.</em>
 </p>
 
 <p align="center">
@@ -60,18 +61,24 @@ From these five truths, the entire architecture of EVOX follows logically.
 
 ## What EVOX Actually Is
 
-EVOX is a **mission control dashboard** for orchestrating AI coding agents. You define agents with roles, assign them tasks from Linear, and they work — while you watch, review, and intervene only when needed.
+EVOX is the **COO of your AI engineering team**. It doesn't write code — it makes sure your agents know what to do, remember what they've done, and coordinate without stepping on each other.
 
-Think of it as the **mission control room at NASA**, but for your AI dev team.
+You define agents with roles, assign them tasks from Linear, and they work. You review, redirect, and make architecture decisions. EVOX handles the operations.
 
 ```
 ┌─────────────────────────────────────────────────┐
-│                  MISSION CONTROL                 │
+│                                                  │
+│   👤 SON — CEO                                   │
+│   Vision · Architecture · Final decisions        │
+│                                                  │
+│ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ │
+│                                                  │
+│   🧠 EVOX — COO                                  │
+│   Orchestration · Memory · Communication         │
 │                                                  │
 │   ┌─────────┐  ┌─────────┐  ┌─────────┐        │
 │   │   MAX   │  │   SAM   │  │   LEO   │        │
 │   │   PM    │  │ Backend │  │Frontend │        │
-│   │ Planning│  │  Code   │  │   UI    │        │
 │   └────┬────┘  └────┬────┘  └────┬────┘        │
 │        │            │            │               │
 │        └────────────┼────────────┘               │
@@ -79,7 +86,6 @@ Think of it as the **mission control room at NASA**, but for your AI dev team.
 │              ┌──────┴──────┐                     │
 │              │   CONVEX    │ ← Shared Brain      │
 │              │  Real-time  │                     │
-│              │  Database   │                     │
 │              └──────┬──────┘                     │
 │                     │                            │
 │        ┌────────────┼────────────┐               │
@@ -89,7 +95,6 @@ Think of it as the **mission control room at NASA**, but for your AI dev team.
 │   │  Tasks  │ │ Commits  │ │ Alerts  │         │
 │   └─────────┘ └──────────┘ └─────────┘         │
 │                                                  │
-│   👤 SON — Human in the loop (reviews only)     │
 └─────────────────────────────────────────────────┘
 ```
 
@@ -235,19 +240,17 @@ Built from first principles. Each phase solves a specific truth.
 | **4C** | Heartbeat & Automation | Truth 4 | 📋 Planned |
 | **5** | Execution Engine | Truth 5 | 📋 Planned |
 
-**End state:** A team of AI agents that remember, communicate, wake up on schedule, execute tasks, and ask for help when they're uncertain — while you focus on architecture decisions and strategy.
+**End state:** A COO that never sleeps — your agents remember, communicate, wake up on schedule, execute tasks, and escalate when they're uncertain. You focus on vision and architecture.
 
 ---
 
 ## Philosophy
 
-EVOX isn't built by copying another agent framework. It's built by asking:
+A CEO sets the vision. Engineers execute. But who makes sure the right work happens in the right order, with the right context, at the right time?
 
-*"What must be true for AI agents to function as a real team?"*
+That's the COO. And that's what EVOX is for AI teams.
 
-Every feature exists because a fundamental constraint demands it. If a constraint doesn't demand it, we don't build it.
-
-This means EVOX will always be **smaller** than frameworks that bolt on features for marketing. But every piece will be **load-bearing**. Nothing decorative. Nothing borrowed without understanding.
+Every feature exists because a fundamental constraint demands it. If a constraint doesn't demand it, we don't build it. This means EVOX will always be **lean** — but every piece is **load-bearing**. Nothing decorative. Nothing without a reason.
 
 ---
 
