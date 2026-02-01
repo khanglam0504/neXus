@@ -166,6 +166,18 @@ export default defineSchema({
     updatedAt: v.number(),
   }).index("by_key", ["key"]),
 
+  // Webhook events from GitHub/Vercel (AGT-128: Max Visibility Pipeline)
+  webhookEvents: defineTable({
+    source: v.union(v.literal("github"), v.literal("vercel")),
+    eventType: v.string(), // "push", "deployment.ready", "deployment.error", etc.
+    payload: v.string(), // JSON stringified
+    linearTicketId: v.optional(v.string()), // matched AGT-XX
+    commentPosted: v.boolean(), // did we post to Linear?
+    createdAt: v.number(),
+  })
+    .index("by_source", ["source"])
+    .index("by_created_at", ["createdAt"]),
+
   // Agent persistent memory (ADR-002: Hierarchical Memory Architecture)
   // AGT-107: SOUL.md per agent, AGT-109: WORKING.md per agent, AGT-110: Daily notes
   agentMemory: defineTable({

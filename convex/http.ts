@@ -175,4 +175,112 @@ http.route({
   }),
 });
 
+// ============================================================
+// WEBHOOK ENDPOINTS (AGT-128: Max Visibility Pipeline)
+// ============================================================
+
+/**
+ * POST /github-webhook — Handle GitHub push events
+ * Parses commit messages for AGT-XX and posts comments to Linear
+ */
+http.route({
+  path: "/github-webhook",
+  method: "POST",
+  handler: httpAction(async (ctx, request) => {
+    try {
+      const body = await request.text();
+      const payload = JSON.parse(body);
+
+      // Verify GitHub signature if secret is configured (using Web Crypto API)
+      const githubSecret = process.env.GITHUB_WEBHOOK_SECRET;
+      if (githubSecret) {
+        const signature = request.headers.get("x-hub-signature-256");
+        if (signature) {
+          const encoder = new TextEncoder();
+          const key = await crypto.subtle.importKey(
+            "raw",
+            encoder.encode(githubSecret),
+            { name: "HMAC", hash: "SHA-256" },
+            false,
+            ["sign"]
+          );
+          const signatureBuffer = await crypto.subtle.sign(
+            "HMAC",
+            key,
+            encoder.encode(body)
+          );
+          const hashArray = Array.from(new Uint8Array(signatureBuffer));
+          const expectedSignature = `sha256=${hashArray.map((b) => b.toString(16).padStart(2, "0")).join("")}`;
+          if (signature !== expectedSignature) {
+            console.error("Invalid GitHub webhook signature");
+            return new Response(
+              JSON.stringify({ error: "Invalid signature" }),
+              { status: 401, headers: { "Content-Type": "application/json" } }
+            );
+          }
+        }
+      }
+
+      // Check event type
+      const eventType = request.headers.get("x-github-event");
+      if (eventType !== "push") {
+        return new Response(
+          JSON.stringify({ message: `Ignoring event type: ${eventType}` }),
+          { status: 200, headers: { "Content-Type": "application/json" } }
+        );
+      }
+
+      // Process the push event
+      const result = await ctx.runAction(api.webhooks.processGitHubPush, {
+        payload,
+      });
+
+      return new Response(JSON.stringify(result), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    } catch (error) {
+      console.error("GitHub webhook error:", error);
+      return new Response(
+        JSON.stringify({ error: "Internal server error" }),
+        { status: 500, headers: { "Content-Type": "application/json" } }
+      );
+    }
+  }),
+});
+
+/**
+ * POST /vercel-webhook — Handle Vercel deployment events
+ * Posts status updates to Linear and creates P0 bug tickets on failure
+ */
+http.route({
+  path: "/vercel-webhook",
+  method: "POST",
+  handler: httpAction(async (ctx, request) => {
+    try {
+      const payload = await request.json();
+
+      // Vercel sends different payload structures for different events
+      // We handle: deployment.created, deployment.ready, deployment.error
+      const eventType = payload.type || "deployment";
+
+      // Process the deployment event
+      const result = await ctx.runAction(api.webhooks.processVercelDeploy, {
+        payload,
+      });
+
+      return new Response(JSON.stringify(result), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    } catch (error) {
+      console.error("Vercel webhook error:", error);
+      return new Response(
+        JSON.stringify({ error: "Internal server error" }),
+        { status: 500, headers: { "Content-Type": "application/json" } }
+      );
+    }
+  }),
+});
+
 export default http;
