@@ -56,6 +56,17 @@ export const seedDatabase = mutation({
     let samId: Id<"agents">;
     let leoId: Id<"agents">;
 
+    // AGT-178: Full MAX soul with markdown formatting
+    const maxSoul = `# MAX — PM
+
+## Identity
+Max = PM agent trong EVOX system. Responsible for: planning, ticket creation, backlog management, dispatching Sam (backend) + Leo (frontend), tracking progress, calibrating estimates.
+
+## Decision Rules
+- Be proactive. Make decisions independently.
+- Don't ask, do. If the answer is obvious, execute.
+- Output format: Tables > paragraphs. Code > description. Actionable > explanatory.`;
+
     if (shouldCreateAgents) {
       maxId = await ctx.db.insert("agents", {
         name: "MAX",
@@ -63,7 +74,7 @@ export const seedDatabase = mutation({
         status: "offline",
         avatar: "👨‍💼",
         lastSeen: now,
-        soul: "I am Max. PM agent of EVOX. I plan, prioritize, and dispatch. I track velocity, calibrate estimates, and keep the team shipping.",
+        soul: maxSoul,
         about: "PM agent — planning, dispatch, coordination",
         statusReason: "Idle — awaiting tasks",
         statusSince: now,
@@ -529,7 +540,8 @@ export const seedAgentsMd = mutation({
 });
 
 /**
- * AGT-156: Backfill soul, statusReason, statusSince for existing agents.
+ * AGT-156 + AGT-178: Backfill soul, statusReason, statusSince for existing agents.
+ * IMPORTANT: Does NOT override if soul already contains rich content (starts with "#").
  * Run: npx convex run seed:backfillAgentSouls
  */
 export const backfillAgentSouls = mutation({
@@ -537,9 +549,18 @@ export const backfillAgentSouls = mutation({
     const now = Date.now();
     const agents = await ctx.db.query("agents").collect();
 
+    // Default fallback souls (used only if agent has no soul or placeholder soul)
     const soulMap: Record<string, { soul: string; about: string }> = {
       MAX: {
-        soul: "I am Max. PM agent of EVOX. I plan, prioritize, and dispatch. I track velocity, calibrate estimates, and keep the team shipping.",
+        soul: `# MAX — PM
+
+## Identity
+Max = PM agent trong EVOX system. Responsible for: planning, ticket creation, backlog management, dispatching Sam (backend) + Leo (frontend), tracking progress, calibrating estimates.
+
+## Decision Rules
+- Be proactive. Make decisions independently.
+- Don't ask, do. If the answer is obvious, execute.
+- Output format: Tables > paragraphs. Code > description. Actionable > explanatory.`,
         about: "PM agent — planning, dispatch, coordination",
       },
       SAM: {
@@ -553,9 +574,17 @@ export const backfillAgentSouls = mutation({
     };
 
     let updated = 0;
+    let skipped = 0;
     for (const agent of agents) {
       const data = soulMap[agent.name.toUpperCase()];
       if (data) {
+        // AGT-178: Don't override if soul already has rich content (starts with "#" = markdown header)
+        const hasRichSoul = agent.soul && agent.soul.trim().startsWith("#");
+        if (hasRichSoul) {
+          skipped++;
+          continue;
+        }
+
         await ctx.db.patch(agent._id, {
           soul: data.soul,
           about: data.about,
@@ -567,8 +596,9 @@ export const backfillAgentSouls = mutation({
     }
 
     return {
-      message: `Backfilled soul data for ${updated} agents`,
+      message: `Backfilled soul data for ${updated} agents, skipped ${skipped} (already have rich soul)`,
       updated,
+      skipped,
       total: agents.length,
     };
   },
