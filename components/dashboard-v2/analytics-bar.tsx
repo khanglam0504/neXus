@@ -37,49 +37,65 @@ export function AnalyticsBar({ taskCounts }: AnalyticsBarProps) {
     };
   }, [taskCounts, dashboardStats]);
 
+  const chipBase =
+    "rounded-lg border border-white/[0.06] bg-white/[0.03] px-5 py-3 transition-colors duration-150 hover:bg-white/[0.05]";
+
   return (
-    <div className="flex shrink-0 items-center gap-3 border-b border-white/[0.06] bg-white/[0.02] px-4 py-3">
-      {/* Completion Chip */}
-      <div className="rounded-lg border border-white/[0.06] bg-white/[0.04] px-4 py-2 transition-colors hover:bg-white/[0.06]">
-        <div className="flex flex-col gap-0.5">
-          <span className="text-[10px] font-medium uppercase tracking-wider text-white/50">Completion</span>
-          <div className="flex items-baseline gap-1.5">
-            <span className="text-lg font-semibold text-amber-400">{stats.completionRate}%</span>
-            <span className="text-xs text-white/40">({stats.completed}/{stats.total})</span>
+    <div className="flex shrink-0 items-center gap-4 border-b border-white/[0.06] bg-white/[0.02] px-4 py-3">
+      {/* Completion Chip — highlight with progress bar */}
+      <div className={chipBase}>
+        <div className="flex flex-col gap-1">
+          <span className="text-[11px] font-medium uppercase tracking-wider text-white/40">Completion</span>
+          <span className="text-xl font-semibold text-amber-400">{stats.completionRate}%</span>
+          <span className="text-sm text-white/30">({stats.completed}/{stats.total})</span>
+          <div className="mt-1.5 h-1 w-full overflow-hidden rounded-full bg-white/[0.08]">
+            <div
+              className="h-full rounded-full bg-amber-400 transition-[width] duration-300"
+              style={{ width: `${Math.min(100, stats.completionRate)}%` }}
+            />
           </div>
         </div>
       </div>
 
       {/* In Progress Chip */}
-      <div className="rounded-lg border border-white/[0.06] bg-white/[0.04] px-4 py-2 transition-colors hover:bg-white/[0.06]">
-        <div className="flex flex-col gap-0.5">
-          <span className="text-[10px] font-medium uppercase tracking-wider text-white/50">In Progress</span>
-          <span className="text-lg font-semibold text-white/90">{stats.inProgress}</span>
+      <div className={chipBase}>
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-1.5">
+            <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-blue-400" aria-hidden />
+            <span className="text-[11px] font-medium uppercase tracking-wider text-white/40">In Progress</span>
+          </div>
+          <span className="text-xl font-semibold text-blue-400">{stats.inProgress}</span>
         </div>
       </div>
 
       {/* Queue Chip */}
-      <div className="rounded-lg border border-white/[0.06] bg-white/[0.04] px-4 py-2 transition-colors hover:bg-white/[0.06]">
-        <div className="flex flex-col gap-0.5">
-          <span className="text-[10px] font-medium uppercase tracking-wider text-white/50">Queue</span>
-          <span className="text-lg font-semibold text-white/90">{stats.todo}</span>
+      <div className={chipBase}>
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-1.5">
+            <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-yellow-400" aria-hidden />
+            <span className="text-[11px] font-medium uppercase tracking-wider text-white/40">Queue</span>
+          </div>
+          <span className="text-xl font-semibold text-yellow-400">{stats.todo}</span>
         </div>
       </div>
 
       {/* Backlog Chip */}
-      <div className="rounded-lg border border-white/[0.06] bg-white/[0.04] px-4 py-2 transition-colors hover:bg-white/[0.06]">
-        <div className="flex flex-col gap-0.5">
-          <span className="text-[10px] font-medium uppercase tracking-wider text-white/50">Backlog</span>
-          <span className="text-lg font-semibold text-white/90">{stats.backlog}</span>
+      <div className={chipBase}>
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-1.5">
+            <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-white/50" aria-hidden />
+            <span className="text-[11px] font-medium uppercase tracking-wider text-white/40">Backlog</span>
+          </div>
+          <span className="text-xl font-semibold text-white/60">{stats.backlog}</span>
         </div>
       </div>
 
       {/* Last Sync Chip (if available) */}
       {stats.lastSyncTime && (
-        <div className="rounded-lg border border-white/[0.06] bg-white/[0.04] px-4 py-2 transition-colors hover:bg-white/[0.06]">
-          <div className="flex flex-col gap-0.5">
-            <span className="text-[10px] font-medium uppercase tracking-wider text-white/50">Last Sync</span>
-            <span className="text-sm font-semibold text-white/70">{formatDistanceToNow(stats.lastSyncTime, { addSuffix: true })}</span>
+        <div className={chipBase}>
+          <div className="flex flex-col gap-1">
+            <span className="text-[11px] font-medium uppercase tracking-wider text-white/40">Last Sync</span>
+            <span className="text-sm font-semibold text-white/60">{formatDistanceToNow(stats.lastSyncTime, { addSuffix: true })}</span>
           </div>
         </div>
       )}
