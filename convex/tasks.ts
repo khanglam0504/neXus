@@ -550,8 +550,13 @@ export const upsertByLinearId = mutation({
       });
 
       if (statusChanged) {
-        // Dedup: skip if same taskId + status_change within 5 min
-        const isDupe = await isDuplicateEvent(ctx.db, existingTask._id, "status_change");
+        // AGT-168: Check for both status_change and completed events (github-webhook may have logged "completed")
+        const isDupeStatusChange = await isDuplicateEvent(ctx.db, existingTask._id, "status_change");
+        const isDupeCompleted = newStatus === "done"
+          ? await isDuplicateEvent(ctx.db, existingTask._id, "completed")
+          : false;
+        const isDupe = isDupeStatusChange || isDupeCompleted;
+
         if (!isDupe) {
           await ctx.db.insert("activities", {
             agent: activityAgentId,
@@ -566,12 +571,18 @@ export const upsertByLinearId = mutation({
             createdAt: now,
           });
           // AGT-137: New unified activityEvents schema
+          // AGT-168: Use "completed" event type when status is done
+          const eventType = newStatus === "done" ? "completed" : "status_change";
+          const title = newStatus === "done"
+            ? `${args.agentName.toUpperCase()} completed ${args.linearIdentifier}`
+            : `${args.agentName.toUpperCase()} moved ${args.linearIdentifier} to ${newStatus}`;
+
           await ctx.db.insert("activityEvents", {
             agentId: activityAgentId,
             agentName: args.agentName.toLowerCase(),
             category: "task",
-            eventType: "status_change",
-            title: `${args.agentName.toUpperCase()} moved ${args.linearIdentifier} to ${newStatus}`,
+            eventType,
+            title,
             taskId: existingTask._id,
             linearIdentifier: args.linearIdentifier,
             projectId: existingTask.projectId,

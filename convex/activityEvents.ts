@@ -12,7 +12,7 @@
  * - message: Agent communications
  */
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalMutation } from "./_generated/server";
 import { Id } from "./_generated/dataModel";
 
 // Event categories
@@ -35,6 +35,30 @@ async function getAgentName(
 ): Promise<string> {
   const agent = await db.get(agentId);
   return agent?.name?.toLowerCase() ?? "unknown";
+}
+
+/**
+ * AGT-168: Check if a similar event was logged recently (deduplication)
+ * Returns true if a matching event exists within the window
+ */
+async function hasRecentEvent(
+  db: any,
+  linearIdentifier: string,
+  eventType: string,
+  windowMs: number = 60000 // 60 seconds default
+): Promise<boolean> {
+  const cutoff = Date.now() - windowMs;
+
+  // Query events by linearId
+  const recentEvents = await db
+    .query("activityEvents")
+    .withIndex("by_linearId", (q: any) => q.eq("linearIdentifier", linearIdentifier))
+    .order("desc")
+    .take(10);
+
+  return recentEvents.some(
+    (e: any) => e.eventType === eventType && e.timestamp > cutoff
+  );
 }
 
 /**
@@ -86,6 +110,114 @@ export const log = mutation({
       metadata: args.metadata,
       timestamp: Date.now(),
     });
+  },
+});
+
+/**
+ * AGT-168: Log task completion from GitHub webhook with correct attribution
+ * Uses agentName from git author mapping, NOT from Linear API token owner.
+ * Includes deduplication to prevent double-events when Linear webhook also fires.
+ */
+export const logGitTaskCompletion = internalMutation({
+  args: {
+    agentName: v.string(), // from git author mapping (e.g., "sam")
+    linearIdentifier: v.string(), // e.g., "AGT-168"
+    commitHash: v.string(),
+    commitMessage: v.string(),
+  },
+  handler: async (ctx, args) => {
+    // Deduplication: check if we already logged this completion recently
+    const isDupe = await hasRecentEvent(ctx.db, args.linearIdentifier, "completed", 60000);
+    if (isDupe) {
+      console.log(`Skipping duplicate completion event for ${args.linearIdentifier}`);
+      return { skipped: true, reason: "duplicate" };
+    }
+
+    // Get agent by name
+    const agents = await ctx.db.query("agents").collect();
+    const agent = agents.find(
+      (a) => a.name.toLowerCase() === args.agentName.toLowerCase()
+    );
+
+    if (!agent) {
+      console.error(`Agent not found: ${args.agentName}`);
+      return { skipped: true, reason: "agent_not_found" };
+    }
+
+    // Find task by linearIdentifier
+    const tasks = await ctx.db.query("tasks").collect();
+    const task = tasks.find(
+      (t) => t.linearIdentifier?.toUpperCase() === args.linearIdentifier.toUpperCase()
+    );
+
+    const displayName = agent.name.toUpperCase();
+    const title = `${displayName} completed ${args.linearIdentifier}`;
+
+    const eventId = await ctx.db.insert("activityEvents", {
+      agentId: agent._id,
+      agentName: args.agentName.toLowerCase(),
+      category: "task",
+      eventType: "completed",
+      title,
+      taskId: task?._id,
+      linearIdentifier: args.linearIdentifier,
+      projectId: task?.projectId,
+      metadata: {
+        toStatus: "done",
+        commitHash: args.commitHash,
+        source: "github-webhook", // distinguish from linear-webhook
+      },
+      timestamp: Date.now(),
+    });
+
+    console.log(`Logged completion for ${args.linearIdentifier} by ${args.agentName}`);
+    return { skipped: false, eventId };
+  },
+});
+
+/**
+ * AGT-168: Log task event from Linear sync/webhook with deduplication
+ * Skips if a github-webhook event already exists for the same ticket+eventType
+ */
+export const logLinearTaskEvent = internalMutation({
+  args: {
+    agentId: v.id("agents"),
+    taskId: v.optional(v.id("tasks")),
+    linearIdentifier: v.string(),
+    eventType: v.string(), // "completed", "status_change", etc.
+    title: v.string(),
+    fromStatus: v.optional(v.string()),
+    toStatus: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    // Deduplication: check if we already have a recent event from github-webhook
+    const isDupe = await hasRecentEvent(ctx.db, args.linearIdentifier, args.eventType, 60000);
+    if (isDupe) {
+      console.log(`Skipping duplicate Linear event for ${args.linearIdentifier} (github-webhook already logged)`);
+      return { skipped: true, reason: "duplicate_from_github" };
+    }
+
+    const agentName = await getAgentName(ctx.db, args.agentId);
+    const task = args.taskId ? await ctx.db.get(args.taskId) : null;
+
+    const eventId = await ctx.db.insert("activityEvents", {
+      agentId: args.agentId,
+      agentName,
+      category: "task",
+      eventType: args.eventType,
+      title: args.title,
+      taskId: args.taskId,
+      linearIdentifier: args.linearIdentifier,
+      projectId: task?.projectId,
+      metadata: {
+        fromStatus: args.fromStatus,
+        toStatus: args.toStatus,
+        source: "linear-webhook",
+      },
+      timestamp: Date.now(),
+    });
+
+    return { skipped: false, eventId };
   },
 });
 

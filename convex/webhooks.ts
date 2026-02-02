@@ -354,10 +354,29 @@ export const processGitHubPush = action({
 
       // AGT-132: Track skill completion when "closes AGT-XX" detected
       // AGT-161: Auto-close Linear ticket when "closes AGT-XX" detected
+      // AGT-168: Emit activityEvent with correct agent attribution from git author
       const closesMatches = message.match(CLOSES_REGEX);
       if (closesMatches && closesMatches.length > 0) {
+        // Get agent name from git author FIRST (before any Linear API calls)
+        const agentName = GITHUB_TO_AGENT[author.toLowerCase()] || "unknown";
+
         for (const match of closesMatches) {
           const closedTicketId = match.replace(/closes\s+/i, "").toUpperCase();
+
+          // AGT-168: Emit activityEvent with correct attribution BEFORE closing
+          // This ensures we log with git author, not Linear token owner
+          if (agentName !== "unknown") {
+            try {
+              await ctx.runMutation(internal.activityEvents.logGitTaskCompletion, {
+                agentName,
+                linearIdentifier: closedTicketId,
+                commitHash: hash,
+                commitMessage: message.split("\n")[0],
+              });
+            } catch (e) {
+              console.error(`Failed to log completion event for ${closedTicketId}:`, e);
+            }
+          }
 
           // Close the Linear ticket
           try {
@@ -372,8 +391,7 @@ export const processGitHubPush = action({
         }
 
         // Record skill completion for the first closed ticket
-        const agentName = GITHUB_TO_AGENT[author.toLowerCase()];
-        if (agentName) {
+        if (agentName !== "unknown") {
           try {
             await ctx.runMutation(internal.webhooks.recordSkillCompletion, {
               agentName,
