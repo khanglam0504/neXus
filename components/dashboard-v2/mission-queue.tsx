@@ -4,7 +4,6 @@ import { useMemo } from "react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { KanbanBoard } from "./kanban-board";
-import { AnalyticsBar } from "./analytics-bar";
 import type { KanbanTask } from "./task-card";
 import { DateFilter, type DateFilterMode } from "./date-filter";
 import { startOfDay, endOfDay, startOfWeek, endOfWeek, subDays } from "date-fns";
@@ -111,18 +110,6 @@ export function MissionQueue({
   };
   const goToToday = () => onDateChange(new Date());
 
-  // Calculate task counts for analytics bar
-  const taskCounts = useMemo(() => {
-    if (!groupedTasks) return { backlog: 0, todo: 0, inProgress: 0, review: 0, done: 0 };
-    return {
-      backlog: groupedTasks.backlog.length,
-      todo: groupedTasks.todo.length,
-      inProgress: groupedTasks.inProgress.length,
-      review: groupedTasks.review.length,
-      done: groupedTasks.done.length,
-    };
-  }, [groupedTasks]);
-
   return (
     <div className={`flex h-full flex-col ${className}`}>
       <div className="flex shrink-0 items-center justify-between border-b border-gray-800 px-4 py-3">
@@ -137,7 +124,7 @@ export function MissionQueue({
           showArrows={dateMode === "day"}
         />
       </div>
-      <AnalyticsBar taskCounts={taskCounts} />
+      {/* AGT-184: Analytics panel moved inside KanbanBoard (right side) */}
       <div className="flex-1 overflow-hidden">
         <KanbanBoard tasks={tasks} onTaskClick={onTaskClick} onAssigneeClick={onAssigneeClick} />
       </div>
