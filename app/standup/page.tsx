@@ -15,47 +15,22 @@ const roleToColor = {
   pm: "blue" as const,
 };
 
-/** Time filter preset for standup (AGT-131) */
-export type StandupTimeFilter = "full" | "morning" | "afternoon" | "evening";
-
-/** AGT-138: Standup range — Day (single day), Week (last 7 days), 30 Days (last 30 days) */
+/** AGT-138: Standup range — Today (single day), This Week (last 7 days), 30 Days (last 30 days) */
 export type StandupRangeMode = "day" | "week" | "30days";
 
-/** User's local day + optional time window as UTC ms for Convex standup */
-function getDayRangeWithTimeFilter(
-  d: Date,
-  filter: StandupTimeFilter
-): { startTs: number; endTs: number } {
+/** Full day range for a given date (UTC ms) */
+function getDayRange(d: Date): { startTs: number; endTs: number } {
   const y = d.getFullYear();
   const m = d.getMonth();
   const day = d.getDate();
-  let start: number;
-  let end: number;
-  if (filter === "full") {
-    start = new Date(y, m, day).getTime();
-    end = start + 24 * 60 * 60 * 1000 - 1;
-  } else if (filter === "morning") {
-    start = new Date(y, m, day, 0, 0, 0, 0).getTime();
-    end = new Date(y, m, day, 12, 0, 0, 0).getTime() - 1;
-  } else if (filter === "afternoon") {
-    start = new Date(y, m, day, 12, 0, 0, 0).getTime();
-    end = new Date(y, m, day, 18, 0, 0, 0).getTime() - 1;
-  } else {
-    // evening: 18:00–24:00
-    start = new Date(y, m, day, 18, 0, 0, 0).getTime();
-    end = new Date(y, m, day, 23, 59, 59, 999).getTime();
-  }
-  return { startTs: start, endTs: end };
+  const start = new Date(y, m, day).getTime();
+  return { startTs: start, endTs: start + 24 * 60 * 60 * 1000 - 1 };
 }
 
-/** AGT-138: Compute startTs/endTs for Day / Week / 30 Days */
-function getRangeForMode(
-  rangeMode: StandupRangeMode,
-  date: Date,
-  timeFilter: StandupTimeFilter
-): { startTs: number; endTs: number } {
+/** AGT-138: Compute startTs/endTs for Today / This Week / 30 Days; summary cards filter by this range */
+function getRangeForMode(rangeMode: StandupRangeMode, date: Date): { startTs: number; endTs: number } {
   if (rangeMode === "day") {
-    return getDayRangeWithTimeFilter(date, timeFilter);
+    return getDayRange(date);
   }
   const now = new Date();
   const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999).getTime();
@@ -66,16 +41,9 @@ function getRangeForMode(
   return { startTs: startOfRange, endTs: endOfToday };
 }
 
-const TIME_FILTER_LABELS: Record<StandupTimeFilter, string> = {
-  full: "Full day",
-  morning: "Morning (00:00–12:00)",
-  afternoon: "Afternoon (12:00–18:00)",
-  evening: "Evening (18:00–24:00)",
-};
-
-const RANGE_MODE_LABELS: Record<StandupRangeMode, string> = {
-  day: "Day",
-  week: "Week",
+const RANGE_BUTTON_LABELS: Record<StandupRangeMode, string> = {
+  day: "Today",
+  week: "This Week",
   "30days": "30 Days",
 };
 
@@ -90,13 +58,9 @@ function sanitizeIdentifier(linearIdentifier?: string | null): string {
 
 export default function StandupPage() {
   const [date, setDate] = useState(new Date());
-  const [timeFilter, setTimeFilter] = useState<StandupTimeFilter>("full");
   const [rangeMode, setRangeMode] = useState<StandupRangeMode>("day");
   const [syncState, setSyncState] = useState<"idle" | "syncing" | "success">("idle");
-  const dayRange = useMemo(
-    () => getRangeForMode(rangeMode, date, timeFilter),
-    [rangeMode, date, timeFilter]
-  );
+  const dayRange = useMemo(() => getRangeForMode(rangeMode, date), [rangeMode, date]);
 
   const standupData = useQuery(api.standup.getDaily, dayRange);
   const standupSummary = useQuery(api.standup.getDailySummary, dayRange);
@@ -249,10 +213,7 @@ export default function StandupPage() {
               <h1 className="text-2xl font-semibold text-zinc-50">Standup</h1>
               <p className="text-sm text-zinc-500">
                 {rangeMode === "day" && formatDate(date)}
-                {rangeMode === "day" && timeFilter !== "full" && (
-                  <span className="ml-2 text-zinc-400">— {TIME_FILTER_LABELS[timeFilter]}</span>
-                )}
-                {rangeMode === "week" && "Last 7 days"}
+                {rangeMode === "week" && "This week"}
                 {rangeMode === "30days" && "Last 30 days"}
               </p>
             </div>
@@ -283,54 +244,47 @@ export default function StandupPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            {/* AGT-138: Range mode — Day / Week / 30 Days */}
-            <select
-              value={rangeMode}
-              onChange={(e) => setRangeMode(e.target.value as StandupRangeMode)}
-              className="rounded-lg border border-zinc-800 bg-zinc-900/50 px-3 py-2 text-sm text-zinc-300 focus:border-zinc-600 focus:outline-none focus:ring-1 focus:ring-zinc-600"
-            >
-              {(Object.keys(RANGE_MODE_LABELS) as StandupRangeMode[]).map((key) => (
-                <option key={key} value={key}>
-                  {RANGE_MODE_LABELS[key]}
-                </option>
-              ))}
-            </select>
-
-            {/* Time filter (AGT-131) — only when Day */}
-            {rangeMode === "day" && (
-              <select
-                value={timeFilter}
-                onChange={(e) => setTimeFilter(e.target.value as StandupTimeFilter)}
-                className="rounded-lg border border-zinc-800 bg-zinc-900/50 px-3 py-2 text-sm text-zinc-300 focus:border-zinc-600 focus:outline-none focus:ring-1 focus:ring-zinc-600"
+            {/* AGT-138: [Today] [This Week] [30 Days] buttons */}
+            {(Object.keys(RANGE_BUTTON_LABELS) as StandupRangeMode[]).map((mode) => (
+              <Button
+                key={mode}
+                variant={rangeMode === mode ? "default" : "outline"}
+                size="sm"
+                onClick={() => setRangeMode(mode)}
+                className={
+                  rangeMode === mode
+                    ? "bg-zinc-700 text-zinc-50 hover:bg-zinc-600"
+                    : "border-zinc-800 bg-zinc-900/50 text-zinc-400 hover:bg-zinc-900 hover:text-zinc-50"
+                }
               >
-                {(Object.keys(TIME_FILTER_LABELS) as StandupTimeFilter[]).map((key) => (
-                  <option key={key} value={key}>
-                    {TIME_FILTER_LABELS[key]}
-                  </option>
-                ))}
-              </select>
-            )}
+                {RANGE_BUTTON_LABELS[mode]}
+              </Button>
+            ))}
 
-            {/* Date nav — only when Day */}
+            {/* ← → arrows: only when Today (day navigation) */}
             {rangeMode === "day" && (
               <>
                 <button
                   onClick={goToPrevDay}
                   className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-2 text-zinc-400 transition-colors hover:bg-zinc-900 hover:text-zinc-50"
+                  aria-label="Previous day"
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </button>
                 {!isToday(date) && (
-                  <button
+                  <Button
+                    variant="outline"
+                    size="sm"
                     onClick={goToToday}
-                    className="rounded-lg border border-zinc-800 bg-zinc-900/50 px-4 py-2 text-sm font-medium text-zinc-400 transition-colors hover:bg-zinc-900 hover:text-zinc-50"
+                    className="border-zinc-800 bg-zinc-900/50 text-zinc-400 hover:bg-zinc-900 hover:text-zinc-50"
                   >
-                    Today
-                  </button>
+                    Go to today
+                  </Button>
                 )}
                 <button
                   onClick={goToNextDay}
                   className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-2 text-zinc-400 transition-colors hover:bg-zinc-900 hover:text-zinc-50"
+                  aria-label="Next day"
                 >
                   <ChevronRight className="h-4 w-4" />
                 </button>
