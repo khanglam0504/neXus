@@ -15,12 +15,13 @@ interface AnalyticsBarProps {
   };
 }
 
-/** AGT-184: Analytics bar — same source as top bar (dashboard.getStats), always visible */
+/** AGT-184: Analytics bar — shows date-filtered stats matching Kanban columns */
 export function AnalyticsBar({ taskCounts }: AnalyticsBarProps) {
   const dashboardStats = useQuery(api.dashboard.getStats);
 
-  // AGT-184: Use dashboard.getStats when available (same as top bar per AGT-183); fallback to prop while loading
-  const counts = dashboardStats?.taskCounts ?? taskCounts;
+  // AGT-183: Use passed taskCounts (date-filtered from MissionQueue) to match Kanban columns
+  // Only use dashboardStats for lastSyncTime, NOT for counts
+  const counts = taskCounts;
   const stats = useMemo(() => {
     const total = counts.backlog + counts.todo + counts.inProgress + counts.review + counts.done;
     const completed = counts.done;

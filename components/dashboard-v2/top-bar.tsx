@@ -51,7 +51,7 @@ export function TopBar({
           In Progress <span className="font-medium text-zinc-50">{inProgress}</span>
         </span>
         <span className="inline-flex items-center gap-1.5 rounded border border-[#222] bg-[#111] px-2 py-1 text-xs text-zinc-500">
-          Done Today <span className="font-medium text-zinc-50">{doneToday}</span>
+          Done <span className="font-medium text-zinc-50">{doneToday}</span>
         </span>
         <span className="inline-flex items-center gap-1.5 rounded border border-[#222] bg-[#111] px-2 py-1 text-xs text-zinc-500">
           Total <span className="font-medium text-zinc-50">{totalTasks}</span>
