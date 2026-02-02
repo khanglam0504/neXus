@@ -133,11 +133,19 @@ export const updateLinearIssueStatus = internalAction({
       });
 
       const issueData = await issueResponse.json();
+
+      // Check for rate limiting or other errors
+      if (issueData?.errors?.length > 0) {
+        const errorMsg = issueData.errors[0]?.message || "Unknown error";
+        console.error(`Linear API error for ${args.ticketId}:`, errorMsg);
+        return { success: false, error: `Linear API error: ${errorMsg}` };
+      }
+
       const issueUuid = issueData?.data?.issue?.id;
       const teamId = issueData?.data?.issue?.team?.id;
 
       if (!issueUuid || !teamId) {
-        console.error(`Could not find ${args.ticketId} in Linear`);
+        console.error(`Could not find ${args.ticketId} in Linear. Response:`, JSON.stringify(issueData));
         return { success: false, error: `Ticket ${args.ticketId} not found` };
       }
 
@@ -154,6 +162,14 @@ export const updateLinearIssueStatus = internalAction({
       });
 
       const statesData = await statesResponse.json();
+
+      // Check for rate limiting or other errors
+      if (statesData?.errors?.length > 0) {
+        const errorMsg = statesData.errors[0]?.message || "Unknown error";
+        console.error(`Linear API error fetching workflow states:`, errorMsg);
+        return { success: false, error: `Linear API error: ${errorMsg}` };
+      }
+
       const states = statesData?.data?.workflowStates?.nodes || [];
 
       // Find the target state (match by name, case-insensitive)
@@ -181,6 +197,14 @@ export const updateLinearIssueStatus = internalAction({
       });
 
       const updateData = await updateResponse.json();
+
+      // Check for rate limiting or other errors
+      if (updateData?.errors?.length > 0) {
+        const errorMsg = updateData.errors[0]?.message || "Unknown error";
+        console.error(`Linear API error updating ${args.ticketId}:`, errorMsg);
+        return { success: false, error: `Linear API error: ${errorMsg}` };
+      }
+
       const success = updateData?.data?.issueUpdate?.success === true;
       const newState = updateData?.data?.issueUpdate?.issue?.state?.name;
 

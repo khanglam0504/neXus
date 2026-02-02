@@ -3,10 +3,10 @@ import { internal } from "./_generated/api";
 
 const crons = cronJobs();
 
-// Sync Linear issues every 2 minutes
+// Sync Linear issues every 10 minutes (AGT-161: reduced to avoid rate limiting)
 crons.interval(
   "sync-linear",
-  { minutes: 2 },
+  { minutes: 10 },
   internal.linearSync.syncAll,
   {}
 );
