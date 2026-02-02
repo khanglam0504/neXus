@@ -81,6 +81,7 @@ export const postComment = mutation({
     });
 
     // Create activity log
+    // AGT-182: Show comment like Linear (e.g., "SAM commented on AGT-182")
     const linearId = task.linearIdentifier || `task-${args.taskId}`;
     await ctx.db.insert("activityEvents", {
       agentId: agent._id,
@@ -88,6 +89,7 @@ export const postComment = mutation({
       category: "message",
       eventType: "comment",
       title: `${agent.name.toUpperCase()} commented on ${linearId}`,
+      description: task.title, // AGT-182: Task title for context
       taskId: args.taskId,
       linearIdentifier: task.linearIdentifier,
       projectId: task.projectId,

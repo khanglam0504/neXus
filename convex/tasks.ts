@@ -62,12 +62,14 @@ export const create = mutation({
     // Log activity using agentName from caller (not Linear API key)
     await ctx.db.insert("activities", { agent: createdBy, action: "created_task", target: taskId, createdAt: now });
     // AGT-137: New unified activityEvents schema
+    // AGT-182: Show creation like Linear (e.g., "MAX created AGT-182")
     await ctx.db.insert("activityEvents", {
       agentId: createdBy,
       agentName: args.agentName.toLowerCase(),
       category: "task",
       eventType: "created",
-      title: `${args.agentName} created task: ${args.title}`,
+      title: `${args.agentName.toUpperCase()} created task`,
+      description: args.title, // AGT-182: Task title in description
       taskId: taskId,
       projectId: args.projectId,
       timestamp: now,
@@ -256,12 +258,17 @@ export const updateStatus = mutation({
       createdAt: now,
     });
     // AGT-137: New unified activityEvents schema
+    // AGT-182: Show full transition like Linear (e.g., "SAM moved AGT-182 from Backlog → Todo")
+    const ticketId = task.linearIdentifier || task.title;
+    const fromStatusDisplay = task.status.replace("_", " ");
+    const toStatusDisplay = args.status.replace("_", " ");
     await ctx.db.insert("activityEvents", {
       agentId: updatedBy,
       agentName: args.agentName.toLowerCase(),
       category: "task",
       eventType: "status_change",
-      title: `${args.agentName} moved task to ${args.status}`,
+      title: `${args.agentName.toUpperCase()} moved ${ticketId} from ${fromStatusDisplay} → ${toStatusDisplay}`,
+      description: task.title, // AGT-182: Include task title for context
       taskId: args.id,
       linearIdentifier: task.linearIdentifier,
       projectId: task.projectId,
@@ -323,17 +330,23 @@ export const assign = mutation({
       createdAt: now,
     });
     // AGT-137: New unified activityEvents schema
+    // AGT-182: Show assignment like Linear (e.g., "MAX assigned AGT-182 to SAM")
     const assignedByAgent = await ctx.db.get(args.assignedBy);
     const assigneeAgent = await ctx.db.get(args.assignee);
+    const ticketId = task.linearIdentifier || task.title;
     await ctx.db.insert("activityEvents", {
       agentId: args.assignedBy,
       agentName: assignedByAgent?.name?.toLowerCase() ?? "unknown",
       category: "task",
       eventType: "assigned",
-      title: `${assignedByAgent?.name ?? "Unknown"} assigned task to ${assigneeAgent?.name ?? "Unknown"}`,
+      title: `${(assignedByAgent?.name ?? "Unknown").toUpperCase()} assigned ${ticketId} to ${(assigneeAgent?.name ?? "Unknown").toUpperCase()}`,
+      description: task.title, // AGT-182: Include task title for context
       taskId: args.id,
       linearIdentifier: task.linearIdentifier,
       projectId: task.projectId,
+      metadata: {
+        assignedTo: assigneeAgent?.name?.toLowerCase(), // AGT-182: Track who was assigned
+      },
       timestamp: now,
     });
 
@@ -378,15 +391,21 @@ export const assignAgent = mutation({
       createdAt: now,
     });
     // AGT-137: New unified activityEvents schema
+    // AGT-182: Show assignment like Linear (e.g., "SAM was assigned AGT-182")
+    const ticketId = task.linearIdentifier || task.title;
     await ctx.db.insert("activityEvents", {
       agentId: args.agentId,
       agentName: agent.name.toLowerCase(),
       category: "task",
       eventType: "assigned",
-      title: `${agent.name} was assigned: ${task.title}`,
+      title: `${agent.name.toUpperCase()} was assigned ${ticketId}`,
+      description: task.title, // AGT-182: Include task title for context
       taskId: args.taskId,
       linearIdentifier: task.linearIdentifier,
       projectId: task.projectId,
+      metadata: {
+        assignedTo: agent.name.toLowerCase(), // AGT-182: Track who was assigned
+      },
       timestamp: now,
     });
 
@@ -443,14 +462,17 @@ export const update = mutation({
       createdAt: now,
     });
     // AGT-137: New unified activityEvents schema
+    // AGT-182: Show update like Linear (e.g., "MAX updated AGT-182")
     const updatedByAgent = await ctx.db.get(updatedBy);
     const taskForUpdate = await ctx.db.get(id);
+    const ticketId = taskForUpdate?.linearIdentifier || taskForUpdate?.title || "task";
     await ctx.db.insert("activityEvents", {
       agentId: updatedBy,
       agentName: updatedByAgent?.name?.toLowerCase() ?? "unknown",
       category: "task",
       eventType: "updated",
-      title: `${updatedByAgent?.name ?? "Unknown"} updated task`,
+      title: `${(updatedByAgent?.name ?? "Unknown").toUpperCase()} updated ${ticketId}`,
+      description: taskForUpdate?.title, // AGT-182: Task title in description
       taskId: id,
       linearIdentifier: taskForUpdate?.linearIdentifier,
       projectId: taskForUpdate?.projectId,
@@ -477,12 +499,15 @@ export const remove = mutation({
       createdAt: now,
     });
     // AGT-137: New unified activityEvents schema
+    // AGT-182: Show deletion like Linear (e.g., "MAX deleted AGT-182")
+    const ticketId = taskToDelete?.linearIdentifier || taskToDelete?.title || "task";
     await ctx.db.insert("activityEvents", {
       agentId: args.deletedBy,
       agentName: deletedByAgent?.name?.toLowerCase() ?? "unknown",
       category: "task",
       eventType: "deleted",
-      title: `${deletedByAgent?.name ?? "Unknown"} deleted task: ${taskToDelete?.title ?? "Unknown"}`,
+      title: `${(deletedByAgent?.name ?? "Unknown").toUpperCase()} deleted ${ticketId}`,
+      description: taskToDelete?.title, // AGT-182: Task title in description
       linearIdentifier: taskToDelete?.linearIdentifier,
       projectId: taskToDelete?.projectId,
       timestamp: now,
@@ -614,15 +639,18 @@ export const upsertByLinearId = mutation({
           // AGT-137: New unified activityEvents schema
           // AGT-168: Use "completed" event type when status is done
           // AGT-179: Use task owner for completion, sync caller for other status changes
+          // AGT-182: Show full transition like Linear (e.g., "SAM moved AGT-182 from backlog → todo")
           const eventType = newStatus === "done" ? "completed" : "status_change";
           const eventAgentId = newStatus === "done" ? completionAgentId : activityAgentId;
           const eventAgentName = newStatus === "done" ? completionAgentName : args.agentName.toLowerCase();
+          const fromStatusDisplay = oldStatus.replace("_", " ");
+          const toStatusDisplay = newStatus.replace("_", " ");
           const title = newStatus === "done"
             ? `${completionAgentName.toUpperCase()} completed ${args.linearIdentifier}`
-            : `${args.agentName.toUpperCase()} moved ${args.linearIdentifier} to ${newStatus}`;
+            : `${args.agentName.toUpperCase()} moved ${args.linearIdentifier} from ${fromStatusDisplay} → ${toStatusDisplay}`;
 
-          // AGT-179: For completed events, show task title in description (not repeated action text)
-          const description = newStatus === "done" ? args.title : undefined;
+          // AGT-179/182: Show task title in description for context
+          const description = args.title;
 
           await ctx.db.insert("activityEvents", {
             agentId: eventAgentId,
@@ -682,12 +710,14 @@ export const upsertByLinearId = mutation({
         createdAt: now,
       });
       // AGT-137: New unified activityEvents schema
+      // AGT-182: Show creation like Linear (e.g., "MAX synced AGT-182")
       await ctx.db.insert("activityEvents", {
         agentId: activityAgentId,
         agentName: args.agentName.toLowerCase(),
         category: "task",
         eventType: "created",
-        title: `${args.agentName.toUpperCase()} synced ${args.linearIdentifier}: ${args.title}`,
+        title: `${args.agentName.toUpperCase()} synced ${args.linearIdentifier}`,
+        description: args.title, // AGT-182: Task title in description
         taskId: taskId,
         linearIdentifier: args.linearIdentifier,
         projectId: args.projectId,

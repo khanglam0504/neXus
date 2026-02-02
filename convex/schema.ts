@@ -196,6 +196,7 @@ export default defineSchema({
       // Task events
       fromStatus: v.optional(v.string()),
       toStatus: v.optional(v.string()),
+      assignedTo: v.optional(v.string()), // AGT-182: Track who was assigned
       // Git events
       commitHash: v.optional(v.string()),
       branch: v.optional(v.string()),
