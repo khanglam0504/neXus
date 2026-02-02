@@ -6,9 +6,10 @@ import type { KanbanTask } from "./task-card";
 export type { KanbanTask };
 import { cn } from "@/lib/utils";
 
-type KanbanStatus = "todo" | "in_progress" | "review" | "done";
+type KanbanStatus = "backlog" | "todo" | "in_progress" | "review" | "done";
 
 const COLUMNS: { status: KanbanStatus; title: string }[] = [
+  { status: "backlog", title: "BACKLOG" },
   { status: "todo", title: "TODO" },
   { status: "in_progress", title: "IN PROGRESS" },
   { status: "review", title: "REVIEW" },

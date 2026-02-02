@@ -4,10 +4,11 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 
-type KanbanStatus = "todo" | "in_progress" | "review" | "done";
-type Priority = "low" | "medium" | "high";
+type KanbanStatus = "backlog" | "todo" | "in_progress" | "review" | "done";
+type Priority = "low" | "medium" | "high" | "urgent";
 
 const priorityColors: Record<Priority, string> = {
+  urgent: "border-l-red-500",
   high: "border-l-green-500",
   medium: "border-l-yellow-500",
   low: "border-l-gray-500",

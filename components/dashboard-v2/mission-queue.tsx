@@ -1,21 +1,18 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
 import { KanbanBoard } from "./kanban-board";
 import type { KanbanTask } from "./task-card";
 import { DateFilter, type DateFilterMode } from "./date-filter";
-/** AGT-151: Mock kanban tasks until AGT-150 (Sam's issues.getByStatus) lands */
-function useMockKanbanTasks(): KanbanTask[] {
-  return useMemo(
-    () => [
-      { id: "1", title: "Unified dashboard v2 API", status: "in_progress", priority: "high", assigneeAvatar: "SM", assigneeName: "Sam", linearIdentifier: "AGT-150", updatedAt: Date.now() - 3600000, tags: ["backend"], description: "Backend API for kanban issues by status. Wire Mission Queue to real Convex queries." },
-      { id: "2", title: "Mission Control layout", status: "todo", priority: "high", assigneeAvatar: "LO", assigneeName: "Leo", linearIdentifier: "AGT-151", updatedAt: Date.now() - 7200000, tags: ["frontend"], description: "3-column grid, AgentPanel, MissionQueue, DetailPanel. TopBar with EVOX COMMAND CENTER." },
-      { id: "3", title: "Activity feed real-time", status: "review", priority: "medium", assigneeAvatar: "LO", updatedAt: Date.now() - 1800000, tags: ["frontend"], description: "Live feed from activityEvents. Real-time updates in DetailPanel." },
-      { id: "4", title: "Agent profile SOUL display", status: "done", priority: "low", assigneeAvatar: "SM", updatedAt: Date.now() - 86400000, tags: ["backend"], description: "Display agent SOUL/state in profile. Backend support for agent detail." },
-    ],
-    []
-  );
-}
+import { startOfDay, endOfDay, startOfWeek, endOfWeek, subDays } from "date-fns";
+
+/**
+ * AGT-158: Wire MissionQueue to real Convex data (tasks.getGroupedByStatus)
+ * - Backlog, Todo, In Progress, Review: show all tasks (no date filter)
+ * - Done: filter by date range based on dateMode
+ */
 
 interface MissionQueueProps {
   onTaskClick?: (task: KanbanTask) => void;
@@ -34,7 +31,68 @@ export function MissionQueue({
   onDateChange,
   className = "",
 }: MissionQueueProps) {
-  const tasks = useMockKanbanTasks();
+  // Calculate date range for DONE column based on dateMode
+  const { startTs, endTs } = useMemo(() => {
+    if (dateMode === "day") {
+      return {
+        startTs: startOfDay(date).getTime(),
+        endTs: endOfDay(date).getTime(),
+      };
+    } else if (dateMode === "week") {
+      return {
+        startTs: startOfWeek(date, { weekStartsOn: 1 }).getTime(),
+        endTs: endOfWeek(date, { weekStartsOn: 1 }).getTime(),
+      };
+    } else {
+      // 30 days
+      return {
+        startTs: subDays(new Date(), 30).getTime(),
+        endTs: Date.now(),
+      };
+    }
+  }, [date, dateMode]);
+
+  // Fetch tasks grouped by status with date filtering for DONE column
+  const groupedTasks = useQuery(api.tasks.getGroupedByStatus, {
+    startTs,
+    endTs,
+  });
+
+  // Fetch agents for assignee display
+  const agents = useQuery(api.agents.list);
+
+  // Transform Convex tasks to KanbanTask format
+  const tasks: KanbanTask[] = useMemo(() => {
+    if (!groupedTasks) return [];
+
+    const agentMap = new Map(
+      (agents ?? []).map((a) => [a._id, a])
+    );
+
+    const allTasks = [
+      ...groupedTasks.backlog,
+      ...groupedTasks.todo,
+      ...groupedTasks.inProgress,
+      ...groupedTasks.review,
+      ...groupedTasks.done,
+    ];
+
+    return allTasks.map((task) => {
+      const assignee = task.assignee ? agentMap.get(task.assignee) : null;
+      return {
+        id: task._id,
+        title: task.title,
+        status: task.status,
+        priority: task.priority,
+        assigneeAvatar: assignee?.name?.slice(0, 2).toUpperCase(),
+        assigneeName: assignee?.name,
+        linearIdentifier: task.linearIdentifier,
+        linearUrl: task.linearUrl,
+        updatedAt: task.updatedAt,
+        description: task.description?.slice(0, 200),
+      };
+    });
+  }, [groupedTasks, agents]);
 
   const goToPrev = () => {
     const d = new Date(date);
