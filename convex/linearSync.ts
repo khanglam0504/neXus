@@ -8,6 +8,21 @@ import { LinearClient } from "@linear/sdk";
 
 const EVOX_PROJECT_ID = "d5bf6ea1-9dcb-4fa7-96e8-66fa03746cfe";
 
+// Type for Linear issue data returned by fetchLinearIssues
+interface LinearIssueData {
+  linearId: string;
+  linearIdentifier: string;
+  linearUrl: string;
+  title: string;
+  description: string;
+  status: "backlog" | "todo" | "in_progress" | "review" | "done";
+  priority: "low" | "medium" | "high" | "urgent";
+  assigneeName: string | null;
+  projectName: string | null;
+  createdAt: number;
+  updatedAt: number;
+}
+
 /**
  * Map Linear status to EVOX task status
  */
@@ -51,44 +66,80 @@ function mapLinearPriority(
 
 /**
  * Fetch Linear issues for EVOX project
+ * AGT-161: Optimized to reduce API calls - uses GraphQL directly instead of N+1 SDK calls
  */
-async function fetchLinearIssues(apiKey: string) {
+async function fetchLinearIssues(apiKey: string): Promise<LinearIssueData[]> {
   if (!apiKey) {
     throw new Error("LINEAR_API_KEY is required");
   }
 
-  const client = new LinearClient({ apiKey });
+  // Use GraphQL directly to fetch all data in a single request
+  // This reduces ~150+ API calls to just 1
+  const query = `
+    query GetEVOXIssues($projectId: ID!) {
+      issues(filter: { project: { id: { eq: $projectId } } }, includeArchived: false, first: 100) {
+        nodes {
+          id
+          identifier
+          url
+          title
+          description
+          priority
+          createdAt
+          updatedAt
+          state {
+            name
+          }
+          assignee {
+            name
+          }
+          project {
+            name
+          }
+        }
+      }
+    }
+  `;
 
-  const issues = await client.issues({
-    filter: {
-      project: { id: { eq: EVOX_PROJECT_ID } },
+  const response = await fetch("https://api.linear.app/graphql", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: apiKey,
     },
-    includeArchived: false,
+    body: JSON.stringify({
+      query,
+      variables: { projectId: EVOX_PROJECT_ID },
+    }),
   });
 
-  const issueNodes = await issues.nodes;
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Linear API error: ${response.status} - ${errorText}`);
+  }
 
-  const mappedIssues = await Promise.all(
-    issueNodes.map(async (issue) => {
-      const state = await issue.state;
-      const assignee = await issue.assignee;
-      const project = await issue.project;
+  const result = await response.json();
 
-      return {
-        linearId: issue.id,
-        linearIdentifier: issue.identifier,
-        linearUrl: issue.url,
-        title: issue.title,
-        description: issue.description || "",
-        status: mapLinearStatus(state?.name || "Todo"),
-        priority: mapLinearPriority(issue.priority || 3),
-        assigneeName: assignee?.name || null,
-        projectName: project?.name || null,
-        createdAt: new Date(issue.createdAt).getTime(),
-        updatedAt: new Date(issue.updatedAt).getTime(),
-      };
-    })
-  );
+  if (result.errors?.length > 0) {
+    console.error("Linear GraphQL errors:", result.errors);
+    throw new Error(`Linear GraphQL error: ${result.errors[0].message}`);
+  }
+
+  const issueNodes = result.data?.issues?.nodes || [];
+
+  const mappedIssues = issueNodes.map((issue: any) => ({
+    linearId: issue.id,
+    linearIdentifier: issue.identifier,
+    linearUrl: issue.url,
+    title: issue.title,
+    description: issue.description || "",
+    status: mapLinearStatus(issue.state?.name || "Todo"),
+    priority: mapLinearPriority(issue.priority || 3),
+    assigneeName: issue.assignee?.name || null,
+    projectName: issue.project?.name || null,
+    createdAt: new Date(issue.createdAt).getTime(),
+    updatedAt: new Date(issue.updatedAt).getTime(),
+  }));
 
   return mappedIssues;
 }
