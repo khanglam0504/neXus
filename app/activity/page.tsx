@@ -6,8 +6,8 @@ import { ActivityFeed } from "@/components/activity-feed";
 import { normalizeActivities } from "@/lib/activity-utils";
 
 export default function ActivityPage() {
-  // AGT-137: Unified activity feed from activityEvents (single table)
-  const activities = useQuery(api.activityEvents.listWithAgents, { limit: 50 });
+  // AGT-145: Activity page from activityEvents.list (unified with Dashboard)
+  const activities = useQuery(api.activityEvents.list, { limit: 50 });
   const displayActivities = normalizeActivities(activities);
 
   return (

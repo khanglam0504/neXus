@@ -87,8 +87,8 @@ const SYNC_INTERVAL_MS = 60 * 1000; // 60s (AGT-133)
 export default function DashboardPage() {
   const agents = useQuery(api.agents.list);
   const tasks = useQuery(api.tasks.list, {});
-  // AGT-137: Unified activity feed from activityEvents (single table)
-  const activities = useQuery(api.activityEvents.listWithAgents, { limit: 50 });
+  // AGT-145: Dashboard Recent Activity from activityEvents.list (unified source)
+  const activities = useQuery(api.activityEvents.list, { limit: 10 });
   const triggerSync = useAction(api.linearSync.triggerSync);
   const syncIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 

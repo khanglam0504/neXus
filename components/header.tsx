@@ -1,50 +1,38 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useQuery, useMutation } from "convex/react";
+import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { Id } from "@/convex/_generated/dataModel";
 import { ChevronRight } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { NotificationBell } from "@/components/notification-bell";
 
-/** AGT-143: Map Convex notification doc to UI shape; filter to last 24h to avoid stale data */
-const NOTIFICATION_TTL_MS = 24 * 60 * 60 * 1000;
-
+/** AGT-145: Notifications dropdown shows recent activityEvents (unified source, no stale notifications table) */
 function useNotificationsForHeader() {
-  const agents = useQuery(api.agents.list);
-  const agentId = Array.isArray(agents) && agents.length > 0 ? (agents[0] as { _id: Id<"agents"> })._id : null;
-  const rawNotifications = useQuery(
-    api.notifications.getByAgent,
-    agentId ? { agent: agentId } : "skip"
-  );
-  const markAllAsRead = useMutation(api.notifications.markAllAsRead);
+  const rawEvents = useQuery(api.activityEvents.list, { limit: 5 });
 
-  const cutoff = Date.now() - NOTIFICATION_TTL_MS;
-  const list =
-    Array.isArray(rawNotifications) && agentId
-      ? rawNotifications
-          .filter((n) => n.createdAt >= cutoff)
-          .map((n) => {
-            const title = n.title ?? "";
-            const agentName = title.split(" ")[0] ?? "System";
-            return {
-              id: n._id,
-              type: n.type as "mention" | "assignment" | "status_change",
-              agentName,
-              agentAvatar: agentName.slice(0, 2).toUpperCase(),
-              title,
-              timestamp: new Date(n.createdAt),
-              isUnread: !n.read,
-            };
-          })
-      : [];
+  const list = Array.isArray(rawEvents)
+    ? rawEvents.map((e) => {
+        const agentName = (e as { agentName?: string }).agentName ?? "System";
+        const title = (e as { title?: string }).title ?? "";
+        const eventType = (e as { eventType?: string }).eventType ?? "status_change";
+        const type: "mention" | "assignment" | "status_change" =
+          eventType === "mention" || eventType === "assignment" || eventType === "status_change"
+            ? eventType
+            : "status_change";
+        return {
+          id: (e as { _id: string })._id,
+          type,
+          agentName: agentName.charAt(0).toUpperCase() + agentName.slice(1),
+          agentAvatar: agentName.slice(0, 2).toUpperCase(),
+          title,
+          timestamp: new Date((e as { timestamp?: number }).timestamp ?? 0),
+          isUnread: false,
+        };
+      })
+    : [];
 
-  const onMarkAllRead = () => {
-    if (agentId) markAllAsRead({ agent: agentId });
-  };
-
-  return { notifications: list, onMarkAllRead };
+  return { notifications: list, onMarkAllRead: () => {} };
 }
 
 export function Header() {
