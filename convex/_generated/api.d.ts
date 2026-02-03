@@ -34,6 +34,7 @@ import type * as slackNotify from "../slackNotify.js";
 import type * as standup from "../standup.js";
 import type * as taskComments from "../taskComments.js";
 import type * as tasks from "../tasks.js";
+import type * as teams from "../teams.js";
 import type * as webhooks from "../webhooks.js";
 
 import type {
@@ -69,6 +70,7 @@ declare const fullApi: ApiFromModules<{
   standup: typeof standup;
   taskComments: typeof taskComments;
   tasks: typeof tasks;
+  teams: typeof teams;
   webhooks: typeof webhooks;
 }>;
 

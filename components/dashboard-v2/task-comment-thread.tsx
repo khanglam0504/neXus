@@ -4,7 +4,7 @@ import { useRef, useEffect, useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { AgentAvatar } from "@/components/ui/agent-avatar";
 import ReactMarkdown from "react-markdown";
 import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -61,25 +61,24 @@ export function TaskCommentThread({ taskId }: TaskCommentThreadProps) {
 
   return (
     <div className="flex flex-col flex-1 min-h-0">
-      <h4 className="text-xs font-semibold uppercase tracking-[0.05em] text-zinc-500 mb-2">Comments</h4>
-      <div className="flex-1 overflow-y-auto space-y-3 min-h-0 border border-[#222] rounded-lg bg-[#0a0a0a] p-3">
+      <h4 className="text-xs font-semibold uppercase tracking-[0.05em] text-muted-foreground mb-2">Comments</h4>
+      <div className="flex-1 overflow-y-auto space-y-3 min-h-0 border border-border rounded-lg bg-muted/50 p-3">
         {!comments || comments.length === 0 ? (
-          <p className="text-sm text-zinc-500 py-4">No comments yet. Agents will post updates here.</p>
+          <p className="text-sm text-muted-foreground py-4">No comments yet. Agents will post updates here.</p>
         ) : (
           comments.map((c) => (
             <div key={c._id} className="flex gap-2">
-              <Avatar className="h-7 w-7 shrink-0 border border-[#222]">
-                <AvatarFallback className="bg-[#111] text-[10px] text-zinc-400">
-                  {(c as { agentName?: string; agentAvatar?: string }).agentName?.slice(0, 2).toUpperCase() ?? "?"}
-                </AvatarFallback>
-              </Avatar>
+              <AgentAvatar 
+                name={(c as { agentName?: string }).agentName ?? "Unknown"} 
+                size={28} 
+              />
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-xs font-semibold text-zinc-50">
+                  <span className="text-xs font-semibold text-foreground">
                     {(c as { agentName?: string }).agentName ?? "Unknown"}
                   </span>
                   <span
-                    className="text-xs text-[#555]"
+                    className="text-xs text-muted-foreground/60"
                     title={c.createdAt != null ? new Date(c.createdAt).toLocaleString() : undefined}
                   >
                     {c.createdAt != null ? formatDistanceToNow(c.createdAt, { addSuffix: true }) : ""}
@@ -87,8 +86,8 @@ export function TaskCommentThread({ taskId }: TaskCommentThreadProps) {
                 </div>
                 <div
                   className={cn(
-                    "mt-0.5 text-sm text-zinc-400 prose prose-invert prose-sm max-w-none",
-                    "break-words [&_a]:text-blue-400 [&_code]:bg-[#222] [&_code]:px-1 [&_pre]:bg-[#111] [&_pre]:p-2 [&_pre]:rounded"
+                    "mt-0.5 text-sm text-foreground/70 prose prose-sm max-w-none dark:prose-invert",
+                    "break-words [&_a]:text-blue-500 dark:[&_a]:text-blue-400 [&_code]:bg-muted [&_code]:px-1 [&_pre]:bg-muted [&_pre]:p-2 [&_pre]:rounded"
                   )}
                 >
                   <ReactMarkdown
@@ -111,13 +110,13 @@ export function TaskCommentThread({ taskId }: TaskCommentThreadProps) {
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           placeholder="Add a comment..."
-          className="flex-1 min-h-[80px] rounded border border-[#222] bg-[#111] px-3 py-2 text-sm text-zinc-50 placeholder:text-zinc-500 focus:outline-none focus:ring-1 focus:ring-[#333]"
+          className="flex-1 min-h-[80px] rounded border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
           rows={2}
         />
         <button
           type="submit"
           disabled={!draft.trim()}
-          className="shrink-0 self-end rounded border border-[#222] bg-[#222] px-3 py-2 text-xs font-medium text-zinc-50 hover:bg-[#333] disabled:opacity-50 disabled:pointer-events-none"
+          className="shrink-0 self-end rounded border border-border bg-muted px-3 py-2 text-xs font-medium text-foreground hover:bg-accent disabled:opacity-50 disabled:pointer-events-none"
         >
           Add comment
         </button>

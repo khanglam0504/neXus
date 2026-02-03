@@ -41,32 +41,32 @@ export function TopBar({
   }, []);
 
   return (
-    <header className="flex h-12 shrink-0 items-center justify-between border-b border-[#222] bg-[#0a0a0a] px-4">
+    <header className="flex h-12 shrink-0 items-center justify-between border-b border-border bg-card px-4">
       <div className="flex items-center gap-4">
-        <h1 className="text-lg font-semibold text-zinc-50">EVOX</h1>
-        <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Command Center</span>
+        <h1 className="text-lg font-semibold text-foreground">EVOX</h1>
+        <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Command Center</span>
       </div>
       <div className="flex items-center gap-2">
-        <span className="inline-flex items-center gap-1.5 rounded border border-[#222] bg-[#111] px-2 py-1 text-xs text-zinc-500">
-          In Progress <span className="font-medium text-zinc-50">{inProgress}</span>
+        <span className="inline-flex items-center gap-1.5 rounded border border-border bg-muted px-2 py-1 text-xs text-muted-foreground">
+          In Progress <span className="font-medium text-foreground">{inProgress}</span>
         </span>
-        <span className="inline-flex items-center gap-1.5 rounded border border-[#222] bg-[#111] px-2 py-1 text-xs text-zinc-500">
-          Done <span className="font-medium text-zinc-50">{doneToday}</span>
+        <span className="inline-flex items-center gap-1.5 rounded border border-border bg-muted px-2 py-1 text-xs text-muted-foreground">
+          Done <span className="font-medium text-foreground">{doneToday}</span>
         </span>
-        <span className="inline-flex items-center gap-1.5 rounded border border-[#222] bg-[#111] px-2 py-1 text-xs text-zinc-500">
-          Total <span className="font-medium text-zinc-50">{totalTasks}</span>
+        <span className="inline-flex items-center gap-1.5 rounded border border-border bg-muted px-2 py-1 text-xs text-muted-foreground">
+          Total <span className="font-medium text-foreground">{totalTasks}</span>
         </span>
       </div>
       <div className="flex items-center gap-4">
         <div className="text-right text-xs">
-          <div className="font-mono text-zinc-50">{time}</div>
-          <div className="text-[#555]">{date}</div>
+          <div className="font-mono text-foreground">{time}</div>
+          <div className="text-muted-foreground">{date}</div>
         </div>
         <NotificationBell
           totalUnread={notificationTotalUnread}
           onBellClick={onBellClick}
         />
-        <div className="flex items-center gap-1.5 text-xs text-[#888]">
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
           <span className="h-2 w-2 rounded-full bg-green-500" />
           Online
         </div>
@@ -74,7 +74,7 @@ export function TopBar({
           <button
             type="button"
             onClick={onSettingsClick}
-            className="rounded-lg p-2 text-zinc-500 hover:bg-[#1a1a1a] hover:text-zinc-50"
+            className="rounded-lg p-2 text-muted-foreground hover:bg-accent hover:text-foreground"
             aria-label="Settings"
           >
             <Settings className="h-5 w-5" />

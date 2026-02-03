@@ -43,11 +43,6 @@ export function DateFilter({
           variant={mode === m ? "default" : "outline"}
           size="sm"
           onClick={() => onModeChange(m)}
-          className={
-            mode === m
-              ? "bg-zinc-700 text-zinc-50 hover:bg-zinc-600"
-              : "border-zinc-800 bg-zinc-900/50 text-zinc-400 hover:bg-zinc-900 hover:text-zinc-50"
-          }
         >
           {LABELS[m]}
         </Button>
@@ -57,20 +52,20 @@ export function DateFilter({
           <button
             type="button"
             onClick={onPrev}
-            className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-2 text-zinc-400 hover:bg-zinc-900 hover:text-zinc-50"
+            className="rounded-lg border border-border bg-background p-2 text-muted-foreground hover:bg-accent hover:text-foreground"
             aria-label="Previous day"
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
           {!isToday && onGoToToday && (
-            <Button variant="outline" size="sm" onClick={onGoToToday} className="border-zinc-800 bg-zinc-900/50 text-zinc-400 hover:bg-zinc-900 hover:text-zinc-50">
+            <Button variant="outline" size="sm" onClick={onGoToToday}>
               Go to today
             </Button>
           )}
           <button
             type="button"
             onClick={onNext}
-            className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-2 text-zinc-400 hover:bg-zinc-900 hover:text-zinc-50"
+            className="rounded-lg border border-border bg-background p-2 text-muted-foreground hover:bg-accent hover:text-foreground"
             aria-label="Next day"
           >
             <ChevronRight className="h-4 w-4" />

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { AgentAvatar } from "@/components/ui/agent-avatar";
 import { Button } from "@/components/ui/button";
 import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -123,14 +123,14 @@ export function AgentProfile({
   const currentTaskDoc = currentTask as { title?: string; linearIdentifier?: string; linearUrl?: string } | null;
 
   return (
-    <div className="flex h-full flex-col overflow-hidden bg-[#0a0a0a]">
+    <div className="flex h-full flex-col overflow-hidden bg-background">
       {!embedded && (
-        <div className="flex shrink-0 items-center justify-between border-b border-[#222] px-4 py-3">
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Agent Profile</h3>
+        <div className="flex shrink-0 items-center justify-between border-b border-border px-4 py-3">
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Agent Profile</h3>
           <button
             type="button"
             onClick={onClose}
-            className="rounded p-1 text-zinc-500 transition-colors hover:bg-[#222] hover:text-zinc-50"
+            className="rounded p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
             aria-label="Close"
           >
             ×
@@ -139,32 +139,30 @@ export function AgentProfile({
       )}
 
       {/* Identity + Status — compact */}
-      <div className="shrink-0 border-b border-[#222] px-4 py-3">
+      <div className="shrink-0 border-b border-border px-4 py-3">
         <div className="flex items-center gap-3">
-          <Avatar className="h-8 w-8 border border-[#222]">
-            <AvatarFallback className="bg-[#111] text-sm text-zinc-50">{avatar}</AvatarFallback>
-          </Avatar>
+          <AgentAvatar name={name} size={32} />
           <div className="min-w-0 flex-1">
-            <p className="text-lg font-semibold text-zinc-50">{name}</p>
-            <p className="text-xs text-zinc-500">{roleLabels[role] ?? role}</p>
+            <p className="text-lg font-semibold text-foreground">{name}</p>
+            <p className="text-xs text-muted-foreground">{roleLabels[role] ?? role}</p>
           </div>
-          <span className={cn("h-2 w-2 shrink-0 rounded-full border border-[#0a0a0a]", dot)} />
+          <span className={cn("h-2 w-2 shrink-0 rounded-full border border-background", dot)} />
         </div>
-        {statusReason && <p className="mt-1 text-xs italic text-zinc-500">{statusReason}</p>}
+        {statusReason && <p className="mt-1 text-xs italic text-muted-foreground">{statusReason}</p>}
         {statusSince != null && (
-          <p className="text-xs text-[#555]">Since {formatDistanceToNow(statusSince, { addSuffix: true })}</p>
+          <p className="text-xs text-muted-foreground/60">Since {formatDistanceToNow(statusSince, { addSuffix: true })}</p>
         )}
         {full?.lastSeen != null && (
-          <p className="text-xs text-[#555]">Last seen {formatDistanceToNow(full.lastSeen, { addSuffix: true })}</p>
+          <p className="text-xs text-muted-foreground/60">Last seen {formatDistanceToNow(full.lastSeen, { addSuffix: true })}</p>
         )}
         {currentTaskDoc && (
-          <p className="mt-1 text-xs text-zinc-500">
+          <p className="mt-1 text-xs text-muted-foreground">
             Current:{" "}
             <a
               href={currentTaskDoc.linearUrl ?? "#"}
               target="_blank"
               rel="noopener noreferrer"
-              className="font-mono text-[#888] hover:text-zinc-400"
+              className="font-mono text-muted-foreground hover:text-foreground"
             >
               {currentTaskDoc.linearIdentifier ?? "—"}
             </a>{" "}
@@ -174,7 +172,7 @@ export function AgentProfile({
       </div>
 
       {/* 6 Tabs */}
-      <div className="flex shrink-0 border-b border-[#222] overflow-x-auto">
+      <div className="flex shrink-0 border-b border-border overflow-x-auto">
         {TABS.map((tab) => (
           <button
             key={tab.id}
@@ -183,8 +181,8 @@ export function AgentProfile({
             className={cn(
               "shrink-0 px-3 py-2 text-xs font-semibold uppercase tracking-wider",
               activeTab === tab.id
-                ? "border-b-2 border-zinc-50 text-zinc-50"
-                : "text-zinc-500 hover:text-zinc-400"
+                ? "border-b-2 border-foreground text-foreground"
+                : "text-muted-foreground hover:text-foreground/80"
             )}
           >
             {tab.id === "tasks" && taskCount > 0 ? `Tasks (${taskCount})` : tab.label}
@@ -199,19 +197,19 @@ export function AgentProfile({
         {activeTab === "overview" && (
           <div className="space-y-4">
             <div>
-              <h4 className="text-xs font-semibold uppercase tracking-[0.05em] text-zinc-500">SOUL</h4>
-              <div className="mt-2 text-sm text-zinc-500 whitespace-pre-wrap">
+              <h4 className="text-xs font-semibold uppercase tracking-[0.05em] text-muted-foreground">SOUL</h4>
+              <div className="mt-2 text-sm text-foreground/70 whitespace-pre-wrap">
                 {soulContent}
               </div>
             </div>
             <div>
-              <h4 className="text-xs font-semibold uppercase tracking-[0.05em] text-zinc-500">Skills</h4>
+              <h4 className="text-xs font-semibold uppercase tracking-[0.05em] text-muted-foreground">Skills</h4>
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {agentSkills?.skills?.length ? (
                   agentSkills.skills.map((s: { name: string; proficiency?: number; verified?: boolean }) => (
                     <span
                       key={s.name}
-                      className="rounded-[10px] border border-[#222] bg-[#111] px-2 py-0.5 text-[10px] text-zinc-400"
+                      className="rounded-[10px] border border-border bg-muted px-2 py-0.5 text-[10px] text-muted-foreground"
                     >
                       {s.name}
                       {s.proficiency != null ? ` ${s.proficiency}%` : ""}
@@ -219,12 +217,12 @@ export function AgentProfile({
                     </span>
                   ))
                 ) : (
-                  <span className="text-xs text-zinc-500">—</span>
+                  <span className="text-xs text-muted-foreground">—</span>
                 )}
               </div>
             </div>
             {agentSkills && (
-              <p className="text-sm text-zinc-500">
+              <p className="text-sm text-muted-foreground">
                 {agentSkills.autonomyLevelName ?? "—"} · {agentSkills.tasksCompleted ?? 0} completed
               </p>
             )}
@@ -240,12 +238,12 @@ export function AgentProfile({
               const label = groupStatus === "backlog" ? "Blocked" : groupStatus.replace("_", " ");
               return (
                 <div key={groupStatus}>
-                  <h4 className="text-xs font-semibold uppercase tracking-[0.05em] text-zinc-500">
+                  <h4 className="text-xs font-semibold uppercase tracking-[0.05em] text-muted-foreground">
                     {label} ({group.length})
                   </h4>
                   <ul className="mt-1.5 space-y-1">
                     {group.length === 0 ? (
-                      <li className="text-xs text-zinc-600">—</li>
+                      <li className="text-xs text-muted-foreground/60">—</li>
                     ) : (
                       group.map((t: { _id: Id<"tasks">; title?: string; linearIdentifier?: string; linearUrl?: string }) => (
                         <li key={t._id}>
@@ -253,9 +251,9 @@ export function AgentProfile({
                             href={t.linearUrl ?? "#"}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="block text-sm text-zinc-400 hover:text-zinc-50"
+                            className="block text-sm text-foreground/70 hover:text-foreground"
                           >
-                            <span className="font-mono text-xs text-[#888]">{t.linearIdentifier ?? "—"}</span>{" "}
+                            <span className="font-mono text-xs text-muted-foreground">{t.linearIdentifier ?? "—"}</span>{" "}
                             {t.title ?? "—"}
                           </a>
                         </li>
@@ -269,29 +267,56 @@ export function AgentProfile({
         )}
 
         {activeTab === "activity" && (
-          <ul className="space-y-1">
+          <div className="space-y-2">
             {Array.isArray(activityForAgent) && activityForAgent.length > 0 ? (
-              activityForAgent.slice(0, 25).map((e: { _id: string; title?: string; linearIdentifier?: string; timestamp?: number }) => (
-                <li key={e._id} className="flex items-center gap-2 border-b border-[#1a1a1a] py-1.5 text-sm text-zinc-500">
-                  {e.linearIdentifier && <span className="font-mono text-xs text-[#888]">{e.linearIdentifier}</span>}
-                  <span className="truncate flex-1">{e.title ?? "—"}</span>
-                  {e.timestamp != null && (
-                    <span className="shrink-0 text-xs text-[#555]">{formatDistanceToNow(e.timestamp, { addSuffix: true })}</span>
-                  )}
-                </li>
-              ))
+              activityForAgent.slice(0, 25).map((e: { _id: string; title?: string; description?: string; eventType?: string; linearIdentifier?: string; timestamp?: number }) => {
+                const eventColors: Record<string, string> = {
+                  created: "bg-blue-500/20 text-blue-400 border-blue-500/30",
+                  assigned: "bg-purple-500/20 text-purple-400 border-purple-500/30",
+                  completed: "bg-green-500/20 text-green-400 border-green-500/30",
+                  status_change: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
+                };
+                const badgeColor = eventColors[e.eventType ?? ""] ?? "bg-muted text-muted-foreground border-border";
+                const eventLabel = e.eventType?.replace("_", " ") ?? "update";
+                
+                return (
+                  <div key={e._id} className="rounded-lg border border-border bg-muted/30 p-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className={`rounded border px-1.5 py-0.5 text-[10px] font-medium uppercase ${badgeColor}`}>
+                          {eventLabel}
+                        </span>
+                        {e.linearIdentifier && (
+                          <span className="font-mono text-xs text-muted-foreground">{e.linearIdentifier}</span>
+                        )}
+                      </div>
+                      {e.timestamp != null && (
+                        <span className="shrink-0 text-[10px] text-muted-foreground/60">
+                          {formatDistanceToNow(e.timestamp, { addSuffix: true })}
+                        </span>
+                      )}
+                    </div>
+                    <p className="mt-1.5 text-sm text-foreground/80 line-clamp-2">{e.title ?? "—"}</p>
+                    {e.description && e.description !== e.title && (
+                      <p className="mt-1 text-xs text-muted-foreground line-clamp-1">{e.description}</p>
+                    )}
+                  </div>
+                );
+              })
             ) : (
-              <p className="text-sm text-zinc-500">No activity</p>
+              <div className="rounded-lg border border-border bg-muted/30 p-6 text-center">
+                <p className="text-sm text-muted-foreground">No activity yet</p>
+              </div>
             )}
-          </ul>
+          </div>
         )}
 
         {activeTab === "messages" && (
           <ul className="space-y-2">
             {Array.isArray(messagesForAgent) && messagesForAgent.length > 0 ? (
               messagesForAgent.slice(0, 20).map((m: { _id: Id<"agentMessages">; content?: string; fromAgent?: { name: string } | null; toAgent?: { name: string } | null; type?: string; timestamp?: number }) => (
-                <li key={m._id} className="rounded border border-[#222] bg-[#111] px-2 py-1.5 text-sm text-zinc-400">
-                  <span className="text-xs text-zinc-500">
+                <li key={m._id} className="rounded border border-border bg-muted/50 px-2 py-1.5 text-sm text-foreground/70">
+                  <span className="text-xs text-muted-foreground">
                     {m.fromAgent?.name ?? "?"} → {m.toAgent?.name ?? "?"}
                     {m.type && ` · ${m.type}`}
                     {m.timestamp != null && ` · ${formatDistanceToNow(m.timestamp, { addSuffix: true })}`}
@@ -300,7 +325,7 @@ export function AgentProfile({
                 </li>
               ))
             ) : (
-              <p className="text-sm text-zinc-500">No messages</p>
+              <p className="text-sm text-muted-foreground">No messages</p>
             )}
           </ul>
         )}
@@ -308,37 +333,37 @@ export function AgentProfile({
         {activeTab === "memory" && (
           <div className="space-y-4">
             <div>
-              <h4 className="text-xs font-semibold uppercase tracking-[0.05em] text-zinc-500">Working (current session)</h4>
-              <div className="mt-2 whitespace-pre-wrap text-sm text-zinc-500">{workingContent}</div>
+              <h4 className="text-xs font-semibold uppercase tracking-[0.05em] text-muted-foreground">Working (current session)</h4>
+              <div className="mt-2 whitespace-pre-wrap text-sm text-foreground/70">{workingContent}</div>
             </div>
             <div>
-              <h4 className="text-xs font-semibold uppercase tracking-[0.05em] text-zinc-500">Daily notes</h4>
+              <h4 className="text-xs font-semibold uppercase tracking-[0.05em] text-muted-foreground">Daily notes</h4>
               {Array.isArray(dailyNotes) && dailyNotes.length > 0 ? (
                 <ul className="mt-2 space-y-2">
                   {dailyNotes.map((note: { _id: string; date?: string; content?: string; updatedAt?: number }) => (
-                    <li key={note._id} className="rounded border border-[#222] bg-[#111] px-2 py-2">
-                      <span className="font-mono text-xs text-[#888]">{note.date ?? "—"}</span>
+                    <li key={note._id} className="rounded border border-border bg-muted/50 px-2 py-2">
+                      <span className="font-mono text-xs text-muted-foreground">{note.date ?? "—"}</span>
                       {note.updatedAt != null && (
-                        <span className="ml-2 text-xs text-[#555]">{formatDistanceToNow(note.updatedAt, { addSuffix: true })}</span>
+                        <span className="ml-2 text-xs text-muted-foreground/60">{formatDistanceToNow(note.updatedAt, { addSuffix: true })}</span>
                       )}
-                      <p className="mt-1 whitespace-pre-wrap text-sm text-zinc-400">{note.content ?? "—"}</p>
+                      <p className="mt-1 whitespace-pre-wrap text-sm text-foreground/70">{note.content ?? "—"}</p>
                     </li>
                   ))}
                 </ul>
               ) : (
-                <p className="mt-2 text-sm text-zinc-500">No daily notes</p>
+                <p className="mt-2 text-sm text-muted-foreground">No daily notes</p>
               )}
             </div>
             {Array.isArray(notificationsForAgent) && notificationsForAgent.length > 0 && (
               <div>
-                <h4 className="text-xs font-semibold uppercase tracking-[0.05em] text-zinc-500">Notifications ({notificationCount})</h4>
+                <h4 className="text-xs font-semibold uppercase tracking-[0.05em] text-muted-foreground">Notifications ({notificationCount})</h4>
                 <ul className="mt-2 space-y-1">
                   {notificationsForAgent.slice(0, 10).map((n: { _id: string; type?: string; title?: string; message?: string; read?: boolean; createdAt?: number }) => (
-                    <li key={n._id} className="flex items-center gap-2 border-b border-[#1a1a1a] py-1.5 text-sm">
-                      {!n.read && <span className="h-1.5 w-1.5 rounded-full bg-zinc-50" />}
-                      <span className="text-xs text-[#888]">{n.type ?? "—"}</span>
+                    <li key={n._id} className="flex items-center gap-2 border-b border-border py-1.5 text-sm">
+                      {!n.read && <span className="h-1.5 w-1.5 rounded-full bg-foreground" />}
+                      <span className="text-xs text-muted-foreground">{n.type ?? "—"}</span>
                       <span className="truncate flex-1">{n.title ?? n.message ?? "—"}</span>
-                      {n.createdAt != null && <span className="text-xs text-[#555]">{formatDistanceToNow(n.createdAt, { addSuffix: true })}</span>}
+                      {n.createdAt != null && <span className="text-xs text-muted-foreground/60">{formatDistanceToNow(n.createdAt, { addSuffix: true })}</span>}
                     </li>
                   ))}
                 </ul>
@@ -350,24 +375,24 @@ export function AgentProfile({
         {activeTab === "heartbeat" && (
           <div className="space-y-4">
             <div>
-              <h4 className="text-xs font-semibold uppercase tracking-[0.05em] text-zinc-500">Last heartbeat</h4>
-              <p className="mt-1 text-sm text-zinc-400">
+              <h4 className="text-xs font-semibold uppercase tracking-[0.05em] text-muted-foreground">Last heartbeat</h4>
+              <p className="mt-1 text-sm text-foreground/70">
                 {full?.lastHeartbeat != null
                   ? formatDistanceToNow(full.lastHeartbeat, { addSuffix: true })
                   : "—"}
               </p>
             </div>
             <div>
-              <h4 className="text-xs font-semibold uppercase tracking-[0.05em] text-zinc-500">Uptime since last beat</h4>
-              <p className="mt-1 text-sm text-zinc-400">
+              <h4 className="text-xs font-semibold uppercase tracking-[0.05em] text-muted-foreground">Uptime since last beat</h4>
+              <p className="mt-1 text-sm text-foreground/70">
                 {full?.lastHeartbeat != null
                   ? formatDistanceToNow(full.lastHeartbeat)
                   : "—"}
               </p>
             </div>
             <div>
-              <h4 className="text-xs font-semibold uppercase tracking-[0.05em] text-zinc-500">Status</h4>
-              <p className="mt-1 text-sm text-zinc-400">
+              <h4 className="text-xs font-semibold uppercase tracking-[0.05em] text-muted-foreground">Status</h4>
+              <p className="mt-1 text-sm text-foreground/70">
                 {full?.lastHeartbeat != null
                   ? (() => {
                       const ageMs = Date.now() - full.lastHeartbeat;
@@ -383,15 +408,15 @@ export function AgentProfile({
       </div>
 
       {/* Send message — fixed at bottom */}
-      <div className="shrink-0 border-t border-[#222] p-4">
-        <h4 className="text-xs font-semibold uppercase tracking-[0.05em] text-zinc-500">Send message</h4>
+      <div className="shrink-0 border-t border-border p-4">
+        <h4 className="text-xs font-semibold uppercase tracking-[0.05em] text-muted-foreground">Send message</h4>
         {Array.isArray(otherAgents) && otherAgents.length > 0 && (
           <div className="mt-1 flex items-center gap-2">
-            <label className="text-xs text-zinc-500">Send as:</label>
+            <label className="text-xs text-muted-foreground">Send as:</label>
             <select
               value={sendAsName}
               onChange={(e) => setSendAsName(e.target.value)}
-              className="rounded-md border border-[#222] bg-[#111] px-2 py-1 text-xs text-zinc-50"
+              className="rounded-md border border-border bg-background px-2 py-1 text-xs text-foreground"
             >
               {otherAgents.map((n) => (
                 <option key={n} value={n}>{n}</option>
@@ -403,14 +428,14 @@ export function AgentProfile({
           placeholder="Type a message..."
           value={messageDraft}
           onChange={(e) => setMessageDraft(e.target.value)}
-          className="mt-2 w-full rounded-md border border-[#222] bg-[#111] px-3 py-2 text-sm text-zinc-50 placeholder:text-zinc-500 focus:border-zinc-500 focus:outline-none"
+          className="mt-2 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none"
           rows={2}
         />
         <Button
           type="button"
           onClick={handleSendMessage}
           disabled={!messageDraft.trim()}
-          className="mt-2 bg-zinc-50 text-[#0a0a0a] hover:bg-zinc-200"
+          className="mt-2"
         >
           Send
         </Button>

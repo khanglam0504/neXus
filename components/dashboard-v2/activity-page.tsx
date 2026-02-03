@@ -33,7 +33,7 @@ export function ActivityPage() {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex shrink-0 items-center gap-2 border-b border-white/[0.08] px-4 py-3">
+      <div className="flex shrink-0 items-center gap-2 border-b border-border px-4 py-3">
         <div className="flex gap-1">
           {EVENT_FILTERS.map((f) => (
             <button
@@ -43,8 +43,8 @@ export function ActivityPage() {
               className={cn(
                 "rounded border px-2 py-1 text-[11px] font-medium uppercase tracking-wide transition-colors",
                 filter === f
-                  ? "border-white/20 bg-white/[0.05] text-white/90"
-                  : "border-white/[0.08] text-white/40 hover:border-white/[0.12] hover:text-white/60"
+                  ? "border-primary/30 bg-accent text-foreground"
+                  : "border-border text-muted-foreground hover:border-primary/20 hover:text-foreground"
               )}
             >
               {f === "all" ? "All" : f.charAt(0).toUpperCase() + f.slice(1)}

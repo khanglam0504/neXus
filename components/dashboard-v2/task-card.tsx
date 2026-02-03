@@ -1,6 +1,6 @@
 "use client";
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { AgentAvatar } from "@/components/ui/agent-avatar";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 
@@ -49,53 +49,51 @@ export function TaskCard({ task, onClick, onAssigneeClick }: TaskCardProps) {
       type="button"
       onClick={onClick}
       className={cn(
-        "w-full rounded-lg border border-gray-800 bg-[#0a0a0a] p-4 text-left transition-colors hover:border-gray-700 hover:bg-gray-800/50",
+        "w-full rounded-lg border border-border bg-background p-3 text-left transition-colors hover:border-primary/30 hover:bg-accent",
         "border-l-4",
         barColor
       )}
     >
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-medium text-zinc-50">{task.title}</p>
+          <p className="truncate text-sm font-medium text-foreground">{task.title}</p>
           {task.linearIdentifier && (
             <a
               href={task.linearUrl ?? "#"}
               target="_blank"
               rel="noopener noreferrer"
               onClick={(e) => e.stopPropagation()}
-              className="font-mono text-xs text-[#888] hover:text-zinc-400 whitespace-nowrap"
+              className="font-mono text-xs text-muted-foreground hover:text-foreground whitespace-nowrap"
             >
               {task.linearIdentifier}
             </a>
           )}
         </div>
-        {task.assigneeAvatar && (
+        {task.assigneeName && (
           <span
             role={onAssigneeClick && task.assigneeId ? "button" : undefined}
             onClick={onAssigneeClick && task.assigneeId ? handleAssigneeClick : undefined}
             className={cn(
               "shrink-0",
-              onAssigneeClick && task.assigneeId && "cursor-pointer rounded hover:ring-1 hover:ring-[#333]"
+              onAssigneeClick && task.assigneeId && "cursor-pointer rounded-full hover:ring-2 hover:ring-ring"
             )}
             title={onAssigneeClick && task.assigneeId ? `Open ${task.assigneeName ?? "agent"}` : undefined}
           >
-            <Avatar className="h-6 w-6 border border-gray-700">
-              <AvatarFallback className="bg-gray-800 text-[10px] text-zinc-50">{task.assigneeAvatar}</AvatarFallback>
-            </Avatar>
+            <AgentAvatar name={task.assigneeName} size={24} />
           </span>
         )}
       </div>
       {task.description && (
-        <p className="mt-2 line-clamp-2 text-xs text-gray-400">{task.description}</p>
+        <p className="mt-2 line-clamp-2 text-xs text-muted-foreground">{task.description}</p>
       )}
       <div className="mt-2 flex flex-wrap items-center gap-2">
         {task.tags?.slice(0, 3).map((tag) => (
-          <span key={tag} className="rounded bg-gray-800 px-1.5 py-0.5 text-xs text-gray-400">
+          <span key={tag} className="rounded bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
             {tag}
           </span>
         ))}
         {task.updatedAt != null && (
-          <span className="text-xs text-[#555]">{formatDistanceToNow(task.updatedAt, { addSuffix: true })}</span>
+          <span className="text-xs text-muted-foreground/60">{formatDistanceToNow(task.updatedAt, { addSuffix: true })}</span>
         )}
       </div>
     </button>

@@ -15,7 +15,7 @@ export function NotificationBell({
   return (
     <button
       onClick={onBellClick}
-      className="relative rounded-lg p-2 text-zinc-500 transition-colors hover:bg-[#222] hover:text-zinc-50"
+      className="relative rounded-lg p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
       aria-label="Open Activity"
     >
       <Bell className="h-5 w-5" />

@@ -3,7 +3,9 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ConvexClientProvider } from "@/components/convex-provider";
 import { ProjectProvider } from "@/components/project-context";
+import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
+import { Agentation } from "agentation";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,18 +29,21 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" className="dark" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#0a0a0a]`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
       >
-        <ConvexClientProvider>
-          <ProjectProvider>
-            <div className="flex h-screen flex-col">
-              {children}
-            </div>
-            <Toaster />
-          </ProjectProvider>
-        </ConvexClientProvider>
+        <ThemeProvider>
+          <ConvexClientProvider>
+            <ProjectProvider>
+              <div className="flex h-screen flex-col">
+                {children}
+                <Agentation />
+              </div>
+              <Toaster />
+            </ProjectProvider>
+          </ConvexClientProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

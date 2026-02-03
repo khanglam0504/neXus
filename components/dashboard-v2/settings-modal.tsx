@@ -8,8 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Bell, Check, Loader2 } from "lucide-react";
+import { Bell, Check, Loader2, Moon, Palette } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useTheme } from "@/components/theme-provider";
 
 interface SettingsModalProps {
   open: boolean;
@@ -18,6 +19,7 @@ interface SettingsModalProps {
 
 export function SettingsModal({ open, onClose }: SettingsModalProps) {
   const { toast } = useToast();
+  const { theme, setTheme } = useTheme();
   const settings = useQuery(api.settings.getAll);
   const updateSetting = useMutation(api.settings.set);
 
@@ -87,38 +89,62 @@ export function SettingsModal({ open, onClose }: SettingsModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4" onClick={onClose}>
-      <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-lg border border-gray-800 bg-[#0a0a0a]" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between border-b border-gray-800 p-4">
-          <h2 className="text-lg font-semibold text-zinc-50">Settings</h2>
-          <button type="button" onClick={onClose} className="rounded p-2 text-gray-500 hover:bg-gray-800 hover:text-white" aria-label="Close">×</button>
+      <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-lg border border-border bg-background" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between border-b border-border p-4">
+          <h2 className="text-lg font-semibold text-foreground">Settings</h2>
+          <button type="button" onClick={onClose} className="rounded p-2 text-muted-foreground hover:bg-accent hover:text-foreground" aria-label="Close">×</button>
         </div>
-        <div className="p-4">
-          <Card className="border-gray-800 bg-gray-900/50">
+        <div className="space-y-4 p-4">
+          {/* Theme Settings */}
+          <Card className="border-border bg-card">
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <Palette className="h-5 w-5 text-blue-400" />
+                <CardTitle className="text-foreground">Appearance</CardTitle>
+              </div>
+              <CardDescription className="text-muted-foreground">Customize the look and feel</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between rounded-lg border border-border bg-muted p-3">
+                <div className="flex items-center gap-3">
+                  <Moon className="h-5 w-5 text-blue-400" />
+                  <p className="text-sm font-medium text-foreground">Dark Mode</p>
+                </div>
+                <Switch
+                  checked={theme === "dark"}
+                  onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Slack Integration */}
+          <Card className="border-border bg-card">
             <CardHeader>
               <div className="flex items-center gap-2">
                 <Bell className="h-5 w-5 text-purple-400" />
-                <CardTitle className="text-zinc-50">Slack Integration</CardTitle>
+                <CardTitle className="text-foreground">Slack Integration</CardTitle>
               </div>
-              <CardDescription className="text-zinc-400">Configure webhook and notification preferences</CardDescription>
+              <CardDescription className="text-muted-foreground">Configure webhook and notification preferences</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="webhookUrl" className="text-zinc-200">Webhook URL</Label>
+                <Label htmlFor="webhookUrl" className="text-foreground">Webhook URL</Label>
                 <div className="flex gap-2">
-                  <Input id="webhookUrl" type="url" placeholder="https://hooks.slack.com/..." value={webhookUrl} onChange={(e) => setWebhookUrl(e.target.value)} className="flex-1 border-gray-700 bg-gray-800 text-gray-100" />
-                  <Button variant="outline" onClick={handleTest} disabled={isTesting || !webhookUrl} className="border-gray-700">{isTesting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Test"}</Button>
+                  <Input id="webhookUrl" type="url" placeholder="https://hooks.slack.com/..." value={webhookUrl} onChange={(e) => setWebhookUrl(e.target.value)} className="flex-1" />
+                  <Button variant="outline" onClick={handleTest} disabled={isTesting || !webhookUrl}>{isTesting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Test"}</Button>
                 </div>
               </div>
               <div className="space-y-3">
-                <Label className="text-zinc-200">Notification Events</Label>
+                <Label className="text-foreground">Notification Events</Label>
                 {[
                   { key: "taskCreated" as const, label: "Task Created" },
                   { key: "taskAssigned" as const, label: "Task Assigned" },
                   { key: "taskCompleted" as const, label: "Task Completed" },
                   { key: "statusChanged" as const, label: "Status Changed" },
                 ].map(({ key, label }) => (
-                  <div key={key} className="flex items-center justify-between rounded-lg border border-gray-800 bg-gray-800/50 p-3">
-                    <p className="text-sm font-medium text-zinc-100">{label}</p>
+                  <div key={key} className="flex items-center justify-between rounded-lg border border-border bg-muted p-3">
+                    <p className="text-sm font-medium text-foreground">{label}</p>
                     <Switch checked={eventToggles[key]} onCheckedChange={(c) => setEventToggles((t) => ({ ...t, [key]: c }))} />
                   </div>
                 ))}

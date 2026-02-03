@@ -9,10 +9,31 @@ export default defineSchema({
     createdAt: v.number(),
   }).index("by_name", ["name"]),
 
+  // Teams - Group agents by function (dev-team, qa-team, etc.)
+  teams: defineTable({
+    name: v.string(),                      // "dev-team", "qa-team", "research"
+    displayName: v.string(),               // "Development Team"
+    description: v.optional(v.string()),
+    lead: v.optional(v.id("agents")),      // Team lead agent
+    projectId: v.optional(v.id("projects")),
+    createdAt: v.number(),
+  })
+    .index("by_name", ["name"])
+    .index("by_project", ["projectId"]),
+
   // Agent management
   agents: defineTable({
     name: v.string(),
-    role: v.union(v.literal("pm"), v.literal("backend"), v.literal("frontend")),
+    role: v.union(
+      v.literal("master"),     // Master Agent (Jason) - orchestrator
+      v.literal("pm"),         // Product Manager
+      v.literal("backend"),    // Backend Developer
+      v.literal("frontend"),   // Frontend Developer
+      v.literal("fullstack"),  // Fullstack Developer (Robert)
+      v.literal("qa"),         // QA Engineer
+      v.literal("research"),   // Research Agent
+      v.literal("devops")      // DevOps Engineer
+    ),
     status: v.union(
       v.literal("online"),
       v.literal("idle"),
@@ -28,9 +49,19 @@ export default defineSchema({
     lastSeen: v.number(),
     lastHeartbeat: v.optional(v.number()), // AGT-119: Last heartbeat timestamp
     linearUserId: v.optional(v.string()), // Linear user ID for API attribution
+    // NEW: OpenClaw Integration
+    isMaster: v.optional(v.boolean()),    // Is this the Master Agent (orchestrator)?
+    teamId: v.optional(v.id("teams")),    // Which team this agent belongs to
+    openclawConfig: v.optional(v.object({
+      gatewayUrl: v.string(),             // e.g., "http://localhost:18789"
+      token: v.string(),                  // Gateway auth token
+      sessionKey: v.optional(v.string()), // For session continuity
+    })),
   })
     .index("by_status", ["status"])
-    .index("by_name", ["name"]),
+    .index("by_name", ["name"])
+    .index("by_team", ["teamId"])
+    .index("by_role", ["role"]),
 
   // Agent name → Convex/Linear mapping (ADR-001: attribution from caller, not Linear API key)
   agentMappings: defineTable({

@@ -47,11 +47,12 @@ export const create = mutation({
   handler: async (ctx, args) => {
     const createdBy = await resolveAgentIdByName(ctx.db, args.agentName);
     const now = Date.now();
+    const status = args.assignee ? "todo" : "backlog";
     const taskId = await ctx.db.insert("tasks", {
       projectId: args.projectId,
       title: args.title,
       description: args.description,
-      status: "backlog",
+      status,
       priority: args.priority,
       createdBy,
       assignee: args.assignee,
@@ -316,17 +317,27 @@ export const assign = mutation({
     if (!task) throw new Error("Task not found");
 
     const now = Date.now();
-    await ctx.db.patch(args.id, {
+    const updates: { assignee: Id<"agents">; updatedAt: number; status?: "todo" } = {
       assignee: args.assignee,
       updatedAt: now,
-    });
+    };
+
+    // Auto-move to todo if currently in backlog
+    let statusChanged = false;
+    let oldStatus = task.status;
+    if (task.status === "backlog") {
+      updates.status = "todo";
+      statusChanged = true;
+    }
+
+    await ctx.db.patch(args.id, updates);
 
     // Log activity
     await ctx.db.insert("activities", {
       agent: args.assignedBy,
       action: "assigned_task",
       target: args.id,
-      metadata: { assignee: args.assignee },
+      metadata: { assignee: args.assignee, statusChanged },
       createdAt: now,
     });
     // AGT-137: New unified activityEvents schema
@@ -377,10 +388,17 @@ export const assignAgent = mutation({
     if (!agent) throw new Error("Agent not found");
 
     const now = Date.now();
-    await ctx.db.patch(args.taskId, {
+    const updates: { assignee: Id<"agents">; updatedAt: number; status?: "todo" } = {
       assignee: args.agentId,
       updatedAt: now,
-    });
+    };
+
+    // Auto-move to todo if currently in backlog
+    if (task.status === "backlog") {
+      updates.status = "todo";
+    }
+
+    await ctx.db.patch(args.taskId, updates);
 
     // Log activity (use the agent being assigned as the actor)
     await ctx.db.insert("activities", {

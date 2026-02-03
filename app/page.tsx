@@ -7,7 +7,7 @@ import { Id } from "@/convex/_generated/dataModel";
 import { NotificationTopBarWrapper } from "@/components/notification-topbar-wrapper";
 import { MissionQueue } from "@/components/dashboard-v2/mission-queue";
 import { SettingsModal } from "@/components/dashboard-v2/settings-modal";
-import { AgentSidebar } from "@/components/dashboard-v2/agent-sidebar";
+import { AgentBottomBar } from "@/components/dashboard-v2/agent-bottom-bar";
 import { AgentProfileModal } from "@/components/dashboard-v2/agent-profile-modal";
 import { ActivityDrawer } from "@/components/dashboard-v2/activity-drawer";
 import { TaskDetailModal } from "@/components/dashboard-v2/task-detail-modal";
@@ -60,7 +60,7 @@ export default function Home() {
     (taskCounts.backlog ?? 0) + (taskCounts.todo ?? 0) + (taskCounts.inProgress ?? 0) + (taskCounts.review ?? 0) + doneCount;
 
   return (
-    <div className="flex h-screen flex-col bg-[#0a0a0a]">
+    <div className="flex h-screen flex-col bg-background">
       <NotificationTopBarWrapper
         agentsActive={activeCount}
         tasksInQueue={taskCounts.todo ?? 0}
@@ -74,8 +74,7 @@ export default function Home() {
       <ActivityDrawer open={activityDrawerOpen} onClose={() => setActivityDrawerOpen(false)} />
       <TaskDetailModal open={selectedTask !== null} task={selectedTask} onClose={() => setSelectedTask(null)} />
 
-      <div className="flex flex-1 min-h-0 overflow-hidden">
-        <AgentSidebar selectedAgentId={selectedAgentId} onAgentClick={handleAgentClick} />
+      <div className="flex flex-1 min-h-0 flex-col overflow-hidden">
         <main className="flex-1 min-w-0 flex flex-col overflow-hidden">
           <MissionQueue
             date={date}
@@ -86,6 +85,7 @@ export default function Home() {
             onAssigneeClick={(id) => handleAgentClick(id as Id<"agents">)}
           />
         </main>
+        <AgentBottomBar selectedAgentId={selectedAgentId} onAgentClick={handleAgentClick} />
       </div>
 
       {selectedAgent && (

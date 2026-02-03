@@ -5,8 +5,24 @@ import { mutation, query } from "./_generated/server";
 export const create = mutation({
   args: {
     name: v.string(),
-    role: v.union(v.literal("pm"), v.literal("backend"), v.literal("frontend")),
+    role: v.union(
+      v.literal("master"),
+      v.literal("pm"),
+      v.literal("backend"),
+      v.literal("frontend"),
+      v.literal("fullstack"),
+      v.literal("qa"),
+      v.literal("research"),
+      v.literal("devops")
+    ),
     avatar: v.string(),
+    isMaster: v.optional(v.boolean()),
+    teamId: v.optional(v.id("teams")),
+    openclawConfig: v.optional(v.object({
+      gatewayUrl: v.string(),
+      token: v.string(),
+      sessionKey: v.optional(v.string()),
+    })),
   },
   handler: async (ctx, args) => {
     const agentId = await ctx.db.insert("agents", {
@@ -15,6 +31,9 @@ export const create = mutation({
       status: "offline",
       avatar: args.avatar,
       lastSeen: Date.now(),
+      isMaster: args.isMaster,
+      teamId: args.teamId,
+      openclawConfig: args.openclawConfig,
     });
     return agentId;
   },
@@ -121,8 +140,19 @@ export const update = mutation({
     name: v.optional(v.string()),
     avatar: v.optional(v.string()),
     role: v.optional(
-      v.union(v.literal("pm"), v.literal("backend"), v.literal("frontend"))
+      v.union(
+        v.literal("master"),
+        v.literal("pm"),
+        v.literal("backend"),
+        v.literal("frontend"),
+        v.literal("fullstack"),
+        v.literal("qa"),
+        v.literal("research"),
+        v.literal("devops")
+      )
     ),
+    isMaster: v.optional(v.boolean()),
+    teamId: v.optional(v.id("teams")),
   },
   handler: async (ctx, args) => {
     const { id, ...updates } = args;
@@ -130,6 +160,53 @@ export const update = mutation({
       ...updates,
       lastSeen: Date.now(),
     });
+  },
+});
+
+// UPDATE - Update OpenClaw configuration
+export const updateOpenClawConfig = mutation({
+  args: {
+    id: v.id("agents"),
+    openclawConfig: v.optional(v.object({
+      gatewayUrl: v.string(),
+      token: v.string(),
+      sessionKey: v.optional(v.string()),
+    })),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.id, {
+      openclawConfig: args.openclawConfig,
+      lastSeen: Date.now(),
+    });
+  },
+});
+
+// QUERY - Get master agent
+export const getMaster = query({
+  handler: async (ctx) => {
+    const masterAgent = await ctx.db
+      .query("agents")
+      .filter((q) => q.eq(q.field("isMaster"), true))
+      .first();
+    
+    if (masterAgent) return masterAgent;
+    
+    // Fallback: look for role "master"
+    return await ctx.db
+      .query("agents")
+      .withIndex("by_role", (q) => q.eq("role", "master"))
+      .first();
+  },
+});
+
+// QUERY - Get agents by team
+export const getByTeam = query({
+  args: { teamId: v.id("teams") },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("agents")
+      .withIndex("by_team", (q) => q.eq("teamId", args.teamId))
+      .collect();
   },
 });
 

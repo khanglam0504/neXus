@@ -39,18 +39,18 @@ export function AgentDetailSlidePanel({
       />
       <div
         className={cn(
-          "fixed right-0 top-0 z-50 h-full w-[420px] shrink-0 border-l border-[#222] bg-[#111] shadow-xl transition-transform duration-200 ease-out",
+          "fixed right-0 top-0 z-50 h-full w-[420px] shrink-0 border-l border-border bg-card shadow-xl transition-transform duration-200 ease-out",
           open ? "translate-x-0" : "translate-x-full"
         )}
         aria-modal
         aria-labelledby="agent-panel-title"
       >
         <div className="flex h-full flex-col min-h-0">
-          <div className="flex shrink-0 items-center justify-end border-b border-[#222] px-4 py-2">
+          <div className="flex shrink-0 items-center justify-end border-b border-border px-4 py-2">
             <button
               type="button"
               onClick={onClose}
-              className="rounded p-1.5 text-zinc-500 transition-colors hover:bg-[#222] hover:text-zinc-50"
+              className="rounded p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
               aria-label="Close panel"
             >
               ✕
@@ -64,6 +64,7 @@ export function AgentDetailSlidePanel({
               status={status}
               avatar={avatar}
               onClose={onClose}
+              embedded
             />
           </div>
         </div>

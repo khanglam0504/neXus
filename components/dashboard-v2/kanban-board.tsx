@@ -44,7 +44,7 @@ export function KanbanBoard({ tasks, onTaskClick, onAssigneeClick, className = "
   }, [tasks]);
 
   return (
-    <div className={cn("flex h-full gap-4 overflow-x-auto pb-4", className)}>
+    <div className={cn("flex h-full gap-3 overflow-x-auto p-4", className)}>
       {COLUMNS.map((col) => {
         const columnTasks = byStatus(col.status);
         const isEmpty = columnTasks.length === 0;
@@ -52,15 +52,15 @@ export function KanbanBoard({ tasks, onTaskClick, onAssigneeClick, className = "
         return (
           <div
             key={col.status}
-            className="flex w-64 shrink-0 flex-col rounded-lg border border-gray-800 bg-[#0a0a0a]"
+            className="flex flex-1 min-w-[200px] flex-col rounded-lg border border-border bg-card"
           >
-            <div className="flex items-center justify-between border-b border-gray-800 px-3 py-2">
-              <h3 className="text-xs font-medium uppercase tracking-wider text-gray-400">{col.title}</h3>
-              <span className="rounded-full bg-gray-800 px-2 py-0.5 text-xs text-gray-500">{columnTasks.length}</span>
+            <div className="flex items-center justify-between border-b border-border px-3 py-2">
+              <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{col.title}</h3>
+              <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">{columnTasks.length}</span>
             </div>
             <div className="flex-1 space-y-2 overflow-y-auto p-2 min-h-0">
               {isEmpty && isDone ? (
-                <p className="py-6 text-center text-xs text-gray-500">No completed tasks</p>
+                <p className="py-6 text-center text-xs text-muted-foreground">No completed tasks</p>
               ) : (
                 columnTasks.map((task) => (
                   <TaskCard
@@ -77,19 +77,19 @@ export function KanbanBoard({ tasks, onTaskClick, onAssigneeClick, className = "
       })}
 
       {/* AGT-184: Analytics panel — right side, shows all status counts */}
-      <div className="flex w-48 shrink-0 flex-col rounded-lg border border-gray-800 bg-[#0a0a0a]">
-        <div className="border-b border-gray-800 px-3 py-2">
-          <h3 className="text-xs font-medium uppercase tracking-wider text-gray-400">Analytics</h3>
+      <div className="flex w-52 shrink-0 flex-col rounded-lg border border-border bg-card">
+        <div className="border-b border-border px-3 py-2">
+          <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Analytics</h3>
         </div>
         <div className="flex-1 space-y-3 p-3">
           {/* Completion Rate */}
-          <div className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-3">
-            <span className="text-[10px] font-medium uppercase tracking-wider text-white/40">Completion</span>
-            <div className="mt-1 text-2xl font-semibold text-amber-400">{counts.completionRate}%</div>
-            <div className="text-xs text-white/30">({counts.done}/{counts.total})</div>
-            <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-white/[0.08]">
+          <div className="rounded-lg border border-border bg-muted/50 p-3">
+            <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Completion</span>
+            <div className="mt-1 text-2xl font-semibold text-amber-500 dark:text-amber-400">{counts.completionRate}%</div>
+            <div className="text-xs text-muted-foreground">({counts.done}/{counts.total})</div>
+            <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-muted">
               <div
-                className="h-full rounded-full bg-amber-400 transition-[width] duration-300"
+                className="h-full rounded-full bg-amber-500 dark:bg-amber-400 transition-[width] duration-300"
                 style={{ width: `${Math.min(100, counts.completionRate)}%` }}
               />
             </div>
@@ -97,36 +97,36 @@ export function KanbanBoard({ tasks, onTaskClick, onAssigneeClick, className = "
 
           {/* Status Counts */}
           <div className="space-y-2">
-            <div className="flex items-center justify-between rounded-lg border border-white/[0.06] bg-white/[0.03] px-3 py-2">
+            <div className="flex items-center justify-between rounded-lg border border-border bg-muted/50 px-3 py-2">
               <div className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-blue-400" />
-                <span className="text-[10px] font-medium uppercase tracking-wider text-white/40">In Progress</span>
+                <span className="h-2 w-2 rounded-full bg-blue-500 dark:bg-blue-400" />
+                <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">In Progress</span>
               </div>
-              <span className="text-lg font-semibold text-blue-400">{counts.inProgress}</span>
+              <span className="text-lg font-semibold text-blue-500 dark:text-blue-400">{counts.inProgress}</span>
             </div>
 
-            <div className="flex items-center justify-between rounded-lg border border-white/[0.06] bg-white/[0.03] px-3 py-2">
+            <div className="flex items-center justify-between rounded-lg border border-border bg-muted/50 px-3 py-2">
               <div className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-yellow-400" />
-                <span className="text-[10px] font-medium uppercase tracking-wider text-white/40">Queue</span>
+                <span className="h-2 w-2 rounded-full bg-yellow-500 dark:bg-yellow-400" />
+                <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Queue</span>
               </div>
-              <span className="text-lg font-semibold text-yellow-400">{counts.todo}</span>
+              <span className="text-lg font-semibold text-yellow-500 dark:text-yellow-400">{counts.todo}</span>
             </div>
 
-            <div className="flex items-center justify-between rounded-lg border border-white/[0.06] bg-white/[0.03] px-3 py-2">
+            <div className="flex items-center justify-between rounded-lg border border-border bg-muted/50 px-3 py-2">
               <div className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-white/50" />
-                <span className="text-[10px] font-medium uppercase tracking-wider text-white/40">Backlog</span>
+                <span className="h-2 w-2 rounded-full bg-gray-400 dark:bg-gray-500" />
+                <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Backlog</span>
               </div>
-              <span className="text-lg font-semibold text-white/60">{counts.backlog}</span>
+              <span className="text-lg font-semibold text-foreground/60">{counts.backlog}</span>
             </div>
 
-            <div className="flex items-center justify-between rounded-lg border border-white/[0.06] bg-white/[0.03] px-3 py-2">
+            <div className="flex items-center justify-between rounded-lg border border-border bg-muted/50 px-3 py-2">
               <div className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-green-400" />
-                <span className="text-[10px] font-medium uppercase tracking-wider text-white/40">Done</span>
+                <span className="h-2 w-2 rounded-full bg-green-500 dark:bg-green-400" />
+                <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Done</span>
               </div>
-              <span className="text-lg font-semibold text-green-400">{counts.done}</span>
+              <span className="text-lg font-semibold text-green-500 dark:text-green-400">{counts.done}</span>
             </div>
           </div>
         </div>

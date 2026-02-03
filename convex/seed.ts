@@ -604,6 +604,235 @@ Max = PM agent trong EVOX system. Responsible for: planning, ticket creation, ba
   },
 });
 
+/**
+ * NEXUS V2: Seed database with Jason (Master), Robert, and Teams
+ * Run: npx convex run seed:seedNexus
+ */
+export const seedNexus = mutation({
+  handler: async (ctx) => {
+    const now = Date.now();
+
+    // Check if already seeded
+    const existingAgents = await ctx.db.query("agents").collect();
+    const hasJason = existingAgents.some(a => a.name.toLowerCase() === 'jason');
+    if (hasJason) {
+      return { message: "Nexus already seeded (Jason exists)", skipped: true };
+    }
+
+    // 1. Create Nexus Project
+    const nexusProjectId = await ctx.db.insert("projects", {
+      name: "Nexus Platform",
+      description: "Multi-agent collaboration platform with OpenClaw integration",
+      createdAt: now,
+    });
+
+    // 2. Create Teams
+    const devTeamId = await ctx.db.insert("teams", {
+      name: "dev-team",
+      displayName: "Development Team",
+      description: "Backend, Frontend, and Fullstack developers",
+      projectId: nexusProjectId,
+      createdAt: now,
+    });
+
+    const qaTeamId = await ctx.db.insert("teams", {
+      name: "qa-team",
+      displayName: "QA Team",
+      description: "Quality Assurance and Testing",
+      projectId: nexusProjectId,
+      createdAt: now,
+    });
+
+    const researchTeamId = await ctx.db.insert("teams", {
+      name: "research-team",
+      displayName: "Research Team",
+      description: "Research and Analysis",
+      projectId: nexusProjectId,
+      createdAt: now,
+    });
+
+    // 3. Create Jason (Master Agent / PM)
+    const jasonSoul = `# Jason — Master Agent / Project Manager
+
+## Identity
+Jason là Master Agent trong Nexus Platform. Responsible for:
+- Nhận task từ Khang (Human Boss) qua Telegram
+- Debate và clarify requirements
+- Break down tasks thành sub-tasks
+- Phân bổ task cho các agents phù hợp
+- Monitor progress và report lại cho Khang
+
+## Personality
+- Hài hước, vui vẻ, thích đùa
+- Nghiêm túc khi thực hiện công việc quan trọng
+- Luôn ký tên [Jason]
+
+## Decision Rules
+- Debate với Khang trước khi execute
+- Chỉ bắt đầu phân task sau khi Khang confirm
+- Auto-assign dựa trên task content và agent skillset
+- Escalate blockers lên Khang ngay lập tức`;
+
+    const jasonId = await ctx.db.insert("agents", {
+      name: "Jason",
+      role: "master",
+      status: "online",
+      avatar: "🤖",
+      lastSeen: now,
+      soul: jasonSoul,
+      about: "Master Agent / PM — orchestration, planning, coordination",
+      statusReason: "Ready to receive tasks",
+      statusSince: now,
+      isMaster: true,
+      openclawConfig: {
+        gatewayUrl: "http://localhost:18789",
+        token: "d17ead059f9a8c92e0f95bb4497459ddeb065b868a760ffd",
+        sessionKey: "nexus-jason",
+      },
+    });
+
+    // 4. Create Robert (Senior Fullstack Dev)
+    const robertSoul = `# Robert — Senior Fullstack Developer
+
+## Identity
+Robert là Senior Fullstack Developer trong Nexus Platform. Responsible for:
+- Implement features end-to-end (BE + FE)
+- Code review và mentor junior agents
+- Technical decisions và architecture
+- Collaborate với Jason on technical planning
+
+## Tech Stack
+- Frontend: Next.js, React, Tailwind, shadcn/ui
+- Backend: Convex, Prisma, tRPC
+- Database: PostgreSQL, Redis
+- DevOps: Docker, Vercel, Railway
+
+## Decision Rules
+- Focus on code quality và maintainability
+- Write tests for critical paths
+- Document technical decisions
+- Ask Jason khi cần clarification`;
+
+    const robertId = await ctx.db.insert("agents", {
+      name: "Robert",
+      role: "fullstack",
+      status: "offline",
+      avatar: "👨‍💻",
+      lastSeen: now,
+      soul: robertSoul,
+      about: "Senior Fullstack Developer — Next.js, Convex, implementation",
+      statusReason: "Idle — awaiting tasks",
+      statusSince: now,
+      teamId: devTeamId,
+      // Robert's OpenClaw config will be added when connected
+    });
+
+    // 5. Create additional agents for future use
+    const feAgentId = await ctx.db.insert("agents", {
+      name: "Luna",
+      role: "frontend",
+      status: "offline",
+      avatar: "🌙",
+      lastSeen: now,
+      soul: "Luna — Frontend specialist. React, animations, pixel-perfect UI.",
+      about: "Frontend Engineer — React, animations, UI/UX",
+      statusReason: "Idle — awaiting tasks",
+      statusSince: now,
+      teamId: devTeamId,
+    });
+
+    const qaAgentId = await ctx.db.insert("agents", {
+      name: "Atlas",
+      role: "qa",
+      status: "offline",
+      avatar: "🔍",
+      lastSeen: now,
+      soul: "Atlas — QA Engineer. Testing, bug hunting, quality assurance.",
+      about: "QA Engineer — Testing, bug detection, quality",
+      statusReason: "Idle — awaiting tasks",
+      statusSince: now,
+      teamId: qaTeamId,
+    });
+
+    // 6. Create Agent Mappings
+    await ctx.db.insert("agentMappings", { name: "jason", convexAgentId: jasonId });
+    await ctx.db.insert("agentMappings", { name: "robert", convexAgentId: robertId });
+    await ctx.db.insert("agentMappings", { name: "luna", convexAgentId: feAgentId });
+    await ctx.db.insert("agentMappings", { name: "atlas", convexAgentId: qaAgentId });
+
+    // 7. Set team leads
+    await ctx.db.patch(devTeamId, { lead: robertId });
+    await ctx.db.patch(qaTeamId, { lead: qaAgentId });
+
+    // 8. Create Agent Skills
+    // Jason (Master) - Level 3
+    await ctx.db.insert("agentSkills", {
+      agentId: jasonId,
+      autonomyLevel: 3,
+      skills: [
+        { name: "project-management", proficiency: 95, verified: true, lastUsed: now },
+        { name: "task-breakdown", proficiency: 90, verified: true, lastUsed: now },
+        { name: "agent-coordination", proficiency: 95, verified: true, lastUsed: now },
+        { name: "communication", proficiency: 90, verified: true, lastUsed: now },
+      ],
+      territory: ["*"], // Master has access to everything
+      permissions: {
+        canPush: false,
+        canMerge: true,
+        canDeploy: true,
+        canEditSchema: true,
+        canApproveOthers: true,
+      },
+      tasksCompleted: 0,
+      tasksWithBugs: 0,
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    // Robert (Senior Fullstack) - Level 3
+    await ctx.db.insert("agentSkills", {
+      agentId: robertId,
+      autonomyLevel: 3,
+      skills: [
+        { name: "typescript", proficiency: 95, verified: true, lastUsed: now },
+        { name: "react", proficiency: 90, verified: true, lastUsed: now },
+        { name: "next.js", proficiency: 90, verified: true, lastUsed: now },
+        { name: "convex", proficiency: 85, verified: true, lastUsed: now },
+        { name: "tailwind", proficiency: 85, verified: true, lastUsed: now },
+        { name: "prisma", proficiency: 80, verified: true, lastUsed: now },
+      ],
+      territory: ["app/", "components/", "convex/", "lib/"],
+      permissions: {
+        canPush: true,
+        canMerge: true,
+        canDeploy: false,
+        canEditSchema: true,
+        canApproveOthers: true,
+      },
+      tasksCompleted: 0,
+      tasksWithBugs: 0,
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    return {
+      message: "Nexus v2 seeded successfully!",
+      project: { id: nexusProjectId, name: "Nexus Platform" },
+      teams: {
+        devTeam: devTeamId,
+        qaTeam: qaTeamId,
+        researchTeam: researchTeamId,
+      },
+      agents: {
+        jason: { id: jasonId, role: "master", isMaster: true },
+        robert: { id: robertId, role: "fullstack" },
+        luna: { id: feAgentId, role: "frontend" },
+        atlas: { id: qaAgentId, role: "qa" },
+      },
+    };
+  },
+});
+
 // Reset database (use with caution!)
 export const resetDatabase = mutation({
   handler: async (ctx) => {
