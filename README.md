@@ -2,229 +2,93 @@
   <img src="public/evox-logo.svg" alt="neXus" width="80" />
 </p>
 
-<h1 align="center">neXus — Mission Control</h1>
+<h1 align="center">neXus</h1>
 
 <p align="center">
-  <strong>The COO for your AI engineering team.</strong><br/>
-  <em>An agent orchestration system built from first principles.</em>
+  <strong>The Operating System for Autonomous Engineering Teams.</strong><br/>
+  <em>Orchestrating multi-agent collaboration with persistent memory and state.</em>
 </p>
 
 <p align="center">
-  <a href="https://evox-ten.vercel.app">Live Demo</a> · <a href="#architecture">Architecture</a> · <a href="#quick-start">Quick Start</a> · <a href="#roadmap">Roadmap</a>
-</p>
-
-<p align="center">
-  <img src="https://img.shields.io/github/stars/khanglam0504/evox?style=social" />
-  <img src="https://img.shields.io/github/forks/khanglam0504/evox?style=social" />
+  <a href="#team">The Team</a> · <a href="#workflow">Workflow</a> · <a href="#stack">Tech Stack</a> · <a href="#roadmap">Roadmap</a>
 </p>
 
 ---
 
-## The Question
+## The Vision
 
-> **"When an AI agent starts a new session, it loses everything. How do you make it work continuously — like a real human teammate?"**
+> **"Agents shouldn't just chat. They should work."**
 
-This isn't a theoretical question. It's the reason neXus exists.
+neXus is not just another dashboard. It is the central nervous system for a fully autonomous engineering team. It solves the fragmentation problem of AI coding agents by providing a shared reality—a persistent state where memory, context, and decisions live beyond a single session.
 
-Most AI agent frameworks focus on **what agents can do** — tool calling, code generation, task execution. But they ignore the harder question: **what happens when the session ends?**
-
-The agent forgets. Every conversation, every decision, every piece of context — gone. You start over. Every. Single. Time.
-
-We didn't start by looking at other agent frameworks. We started by asking: *what are the fundamental truths about AI agents that cannot be argued with?*
+In neXus, agents aren't ephemeral scripts. They are **teammates**.
 
 ---
 
-## Five Truths
+## The Team Model
 
-Everything in neXus is derived from five irreducible truths. Not borrowed from another project. Not inspired by a trend. These are constraints imposed by physics and logic:
+neXus manages a specific hierarchy of specialized agents, mirroring a high-performing human engineering pod.
 
-**Truth 1 — LLMs have no memory between sessions.**
-Every new invocation is a blank page. This isn't a bug to fix; it's a law of the architecture. Therefore: *state must live outside the model*, in a persistent layer the agent reads on boot.
-
-**Truth 2 — Context windows are finite.**
-You can't dump an agent's entire history into a prompt. Therefore: *memory must be hierarchical* — working state (what I'm doing now), daily notes (what happened today), long-term memory (who I am and what I've learned).
-
-**Truth 3 — Multiple agents on one codebase will collide.**
-If two agents don't know what the other is doing, they'll overwrite each other's work. Therefore: *agents need a shared communication layer* — not because it's a nice feature, but because it's the only way to prevent chaos.
-
-**Truth 4 — AI agents don't wake up on their own.**
-No heartbeat. No initiative. No autonomous behavior — unless something triggers them. Therefore: *you need a scheduler or event system*. This is a hardware constraint, not a design choice.
-
-**Truth 5 — AI output is not 100% reliable.**
-Agents will make mistakes. Ship bugs. Misunderstand requirements. Therefore: *you need permission levels* — what the agent can do alone, and what requires human approval. This is risk management, not a feature.
-
-From these five truths, the entire architecture of neXus follows logically.
+| Agent | Role | Responsibility |
+|-------|------|----------------|
+| **Jason** | **Project Manager / Orchestrator** | The "Brain". Interacts with the human owner (Khang), manages the roadmap, breaks down high-level requirements into technical tasks, and unblocks the team. |
+| **Robert** | **Fullstack Lead** | The "Hands". Senior engineer responsible for core architecture, complex backend logic, and maintaining code quality standards. |
+| **Luna** | **Frontend Specialist** | The "Artist". Focuses on UI/UX, component libraries (shadcn/ui), and ensuring the interface is responsive and beautiful. |
+| **Atlas** | **QA & Security** | The "Shield". Validates implementations, writes tests, checks for security vulnerabilities, and ensures nothing breaks production. |
 
 ---
 
-## What neXus Actually Is
+## The Workflow
 
-neXus is the **COO of your AI engineering team**. It doesn't write code — it makes sure your agents know what to do, remember what they've done, and coordinate without stepping on each other.
+The neXus workflow is designed to minimize human micromanagement while maximizing control.
 
-You define agents with roles, assign them tasks from Linear, and they work. You review, redirect, and make architecture decisions. neXus handles the operations.
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                                                             │
-│   👤 SON — CEO                                              │
-│   Vision · Architecture · Final decisions                   │
-│                                                             │
-│ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ │
-│                                                             │
-│   🧠 neXus — COO                                            │
-│   Orchestration · Memory · Communication                    │
-│                                                             │
-│   ┌───────┐  ┌───────┐  ┌───────┐  ┌───────┐              │
-│   │  MAX  │  │  SAM  │  │  LEO  │  │ ELLA  │              │
-│   │  PM   │  │Backend│  │Frontend│ │  QA   │              │
-│   └───┬───┘  └───┬───┘  └───┬───┘  └───┬───┘              │
-│       │          │          │          │                    │
-│       └──────────┴────┬─────┴──────────┘                    │
-│                       │                                     │
-│                ┌──────┴──────┐                              │
-│                │   CONVEX    │ ← Shared Brain               │
-│                │  Real-time  │                              │
-│                └──────┬──────┘                              │
-│                       │                                     │
-│          ┌────────────┼────────────┐                        │
-│          │            │            │                        │
-│     ┌────┴────┐ ┌─────┴────┐ ┌────┴────┐                   │
-│     │ Linear  │ │  GitHub  │ │  Slack  │                   │
-│     │  Tasks  │ │ Commits  │ │ Alerts  │                   │
-│     └─────────┘ └──────────┘ └─────────┘                   │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    User[Khang (Human)] -->|Requirements| Jason[Jason (PM)]
+    Jason -->|Debate & Plan| User
+    Jason -->|Approved Plan| Dashboard[neXus Dashboard]
+    Dashboard -->|Task Assignment| Agents
+    
+    subgraph Execution Loop
+        Agents -->|Code| Robert[Robert (Dev)]
+        Agents -->|UI| Luna[Luna (Design)]
+        Agents -->|Verify| Atlas[Atlas (QA)]
+    end
+    
+    Execution Loop -->|PR & Report| Jason
+    Jason -->|Final Review| User
 ```
 
-### The Agents
-
-| Agent | Role | Specialty |
-|-------|------|-----------|
-| **MAX** | Product Manager | Breaks down features into tasks, manages priorities, reviews PRs |
-| **SAM** | Backend Engineer | API design, database schemas, server logic, Convex functions |
-| **LEO** | Frontend Engineer | React components, UI/UX implementation, responsive design |
-| **ELLA** | QA Engineer | Testing, bug detection, quality assurance |
-
-Each agent has:
-- **Identity** — who they are, what they're good at
-- **Memory** — what they're currently working on, what happened before
-- **Communication** — ability to talk to other agents and receive instructions
-- **Autonomy levels** — what they can do alone vs. what needs human approval
+1.  **Inception:** Khang provides a high-level goal to **Jason**.
+2.  **Planning:** Jason analyzes the request, checks `MEMORY.md`, and proposes a plan.
+3.  **Dispatch:** Once approved, Jason logs tasks into the **neXus Dashboard** (backed by Linear/Convex).
+4.  **Execution:** Sub-agents (**Robert**, **Luna**, **Atlas**) pick up tasks based on their roles.
+5.  **Sync:** All state (who is doing what) is synchronized in real-time via **Convex**.
 
 ---
 
-## Architecture
+## Tech Stack
 
-neXus is built on one core principle: **Convex is the shared brain.**
+Built for speed, reliability, and real-time synchronization.
 
-Agents are *runtime-agnostic*. Whether they run via Claude Code, Cursor, or a future always-on daemon like OpenClaw — the persistent state lives in Convex. Swap the runtime, keep the memory.
-
-```
-Agent Boot Sequence (every session):
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-1. Read AGENTS.md     → "How does this team operate?"
-2. Read SOUL.md       → "Who am I? What am I good at?"
-3. Read WORKING.md    → "What was I doing last time?"
-4. Check @mentions    → "Did anyone need me?"
-5. Check assignments  → "What tasks are mine?"
-6. Act — or report HEARTBEAT_OK
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Cold start to productive: ~30 seconds
-```
-
-### Tech Stack
-
-| Layer | Technology | Why |
-|-------|-----------|-----|
-| Framework | Next.js 14 (App Router) | Server components, streaming |
-| Database | Convex | Real-time sync, no polling needed |
-| Styling | Tailwind CSS + shadcn/ui | Rapid UI, consistent design system |
-| Task Management | Linear API | Where the work actually lives |
-| Deployment | Vercel | Zero-config, preview deploys |
-| AI Runtime | Claude Code / Cursor | Interchangeable by design |
-
-### Key Design Decisions
-
-**Why Convex over Supabase/Firebase?**
-Real-time reactivity out of the box. When SAM updates a task status, LEO's dashboard reflects it instantly. No WebSocket boilerplate. No polling intervals. The database *is* the event system.
-
-**Why Linear over building our own task system?**
-Linear is where real engineering teams already work. neXus syncs bi-directionally — agents pull tasks from Linear, and status changes push back. No context switching. No duplicate systems.
-
-**Why runtime-agnostic?**
-The AI runtime landscape changes monthly. Locking into one runtime is a bet against the future. neXus's value is in the **orchestration layer** (memory, communication, coordination) — not in which CLI tool executes the code.
-
----
-
-## Features
-
-### Built ✅
-- **Dashboard** — Real-time overview with task counts, agent status, activity feed
-- **Agent Cards** — Live status indicators (Online/Busy/Idle), role badges, active tasks
-- **Task Board** — Kanban view synced with Linear, drag-and-drop assignment
-- **Activity Feed** — Real-time log of all agent actions and status changes
-- **Linear Sync** — Bi-directional sync with 2-minute auto-refresh + manual "Sync Now"
-- **Multi-Project** — Switch between projects, filter by team
-- **Heartbeat System** — Agent health monitoring via CLI + API endpoint
-- **Task Assignment UI** — Assign tasks to specific agents from the dashboard
-- **Standup View** — Daily/Weekly/30-day standup summary with range selector
-- **Activity Events** — Unified event logging with deduplication
-- **Agent Skills** — Track agent capabilities and specializations
-
-### Building 🔨
-- **Agent Memory System** — SOUL.md + WORKING.md + daily notes per agent
-- **@Mentions & Notifications** — Agent-to-agent communication
-- **Comment Threads** — Discussion on tasks between agents
-- **Heartbeat Scheduler** — Staggered cron jobs (Max :00, Sam :05, Leo :10)
-- **Agent Levels** — Intern → Specialist → Lead autonomy progression
-- **Execution Engine** — Auto-run tasks, commit to GitHub, report results
-
----
-
-## Quick Start
-
-```bash
-# Clone
-git clone https://github.com/khanglam0504/evox.git
-cd nexus
-
-# Install
-npm install
-
-# Set up Convex
-npx convex dev
-
-# Configure environment
-cp .env.example .env.local
-# Add your CONVEX_URL and LINEAR_API_KEY
-
-# Run
-npm run dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) and you'll see Mission Control.
-
-### Environment Variables
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `CONVEX_DEPLOYMENT` | Yes | Your Convex deployment URL |
-| `NEXT_PUBLIC_CONVEX_URL` | Yes | Public Convex URL for client |
-| `LINEAR_API_KEY` | Yes | Linear API key for task sync |
+-   **Core:** Next.js 16 (App Router)
+-   **State/Database:** Convex (Real-time shared brain)
+-   **Styling:** TailwindCSS v4 + shadcn/ui
+-   **Coordination:** OpenClaw / Agentation
+-   **Task Management:** Linear Integration
 
 ---
 
 ## Project Structure
 
-```
+```bash
 nexus/
-├── .claude/           # Agent configuration + dispatch rules
-├── app/               # Next.js App Router pages
-├── components/        # React components (dashboard, agents, tasks)
-├── convex/            # Convex schema, functions, real-time queries
-├── docs/              # Playbooks, patterns, architecture decisions
-├── hooks/             # Custom React hooks
-├── lib/               # Utilities, Linear API, helpers
+├── app/               # Next.js App Router (The Interface)
+├── convex/            # The "Shared Brain" (Database & Functions)
+├── components/        # UI Components
+│   ├── dashboard-v2/  # The Mission Control Interface
+│   └── ui/            # shadcn/ui primitives
+├── lib/               # Shared utilities
 └── public/            # Static assets
 ```
 
@@ -232,65 +96,15 @@ nexus/
 
 ## Roadmap
 
-Built from first principles. Each phase solves a specific truth.
-
-| Phase | Focus | Solves | Status |
-|-------|-------|--------|--------|
-| **1–3** | Dashboard, Task Board, Linear Sync | Foundation | ✅ Done |
-| **4A** | Agent Identity & Memory | Truth 1, 2 | ✅ Done |
-| **4B** | Agent Communication | Truth 3 | ✅ Done |
-| **4C** | Heartbeat & Automation | Truth 4 | ✅ Done |
-| **5** | Execution Engine | Truth 5 | 📋 Planned |
-| **6** | Standup Redesign & Activity Events | Operations | 🔨 In Progress |
-
-**End state:** A COO that never sleeps — your agents remember, communicate, wake up on schedule, execute tasks, and escalate when they're uncertain. You focus on vision and architecture.
-
----
-
-## Stats
-
-Started Jan 31, 2026 · 9 sessions completed · 40+ tickets shipped
-
----
-
-## Philosophy
-
-A CEO sets the vision. Engineers execute. But who makes sure the right work happens in the right order, with the right context, at the right time?
-
-That's the COO. And that's what neXus is for AI teams.
-
-Every feature exists because a fundamental constraint demands it. If a constraint doesn't demand it, we don't build it. This means neXus will always be **lean** — but every piece is **load-bearing**. Nothing decorative. Nothing without a reason.
-
----
-
-## Contributing
-
-neXus is open source and we welcome contributions. Whether it's:
-
-- 🐛 Bug reports and fixes
-- 💡 Feature suggestions grounded in real problems
-- 📖 Documentation improvements
-- 🧪 Testing and feedback
-
-Please open an issue or PR. If you're proposing a new feature, explain **which truth it solves** — we take first principles seriously.
-
----
-
-## Star History
-
-If this project resonates with you, a ⭐ helps others discover it.
-
-[![Star History Chart](https://api.star-history.com/svg?repos=khanglam0504/evox&type=Date)](https://star-history.com/#khanglam0504/evox&Date)
-
----
-
-## License
-
-MIT — Use it, fork it, build on it.
+-   [x] **Foundation:** Dashboard v2, Real-time Sync (Convex)
+-   [x] **Identity:** Agent Profiles, Role-based Context
+-   [ ] **Autonomy:** Auto-dispatch tasks from Jason to Robert/Luna
+-   [ ] **Observation:** Real-time terminal streaming to Dashboard
+-   [ ] **Voice:** Voice-based standups with the team
 
 ---
 
 <p align="center">
-  <strong>Built by <a href="https://github.com/sonpiaz">Son Piaz</a></strong><br/>
-  CEO @ <a href="https://affitor.com">Affitor</a> · Building the future of AI-native teams
+  <strong>Crafted by Jason & Robert</strong><br/>
+  <em>Under the supervision of Khang.</em>
 </p>
