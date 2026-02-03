@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="public/evox-logo.svg" alt="EVOX" width="80" />
+  <img src="public/evox-logo.svg" alt="neXus" width="80" />
 </p>
 
-<h1 align="center">EVOX — Mission Control</h1>
+<h1 align="center">neXus — Mission Control</h1>
 
 <p align="center">
   <strong>The COO for your AI engineering team.</strong><br/>
@@ -14,8 +14,8 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/github/stars/sonpiaz/evox?style=social" />
-  <img src="https://img.shields.io/github/forks/sonpiaz/evox?style=social" />
+  <img src="https://img.shields.io/github/stars/khanglam0504/evox?style=social" />
+  <img src="https://img.shields.io/github/forks/khanglam0504/evox?style=social" />
 </p>
 
 ---
@@ -24,7 +24,7 @@
 
 > **"When an AI agent starts a new session, it loses everything. How do you make it work continuously — like a real human teammate?"**
 
-This isn't a theoretical question. It's the reason EVOX exists.
+This isn't a theoretical question. It's the reason neXus exists.
 
 Most AI agent frameworks focus on **what agents can do** — tool calling, code generation, task execution. But they ignore the harder question: **what happens when the session ends?**
 
@@ -36,7 +36,7 @@ We didn't start by looking at other agent frameworks. We started by asking: *wha
 
 ## Five Truths
 
-Everything in EVOX is derived from five irreducible truths. Not borrowed from another project. Not inspired by a trend. These are constraints imposed by physics and logic:
+Everything in neXus is derived from five irreducible truths. Not borrowed from another project. Not inspired by a trend. These are constraints imposed by physics and logic:
 
 **Truth 1 — LLMs have no memory between sessions.**
 Every new invocation is a blank page. This isn't a bug to fix; it's a law of the architecture. Therefore: *state must live outside the model*, in a persistent layer the agent reads on boot.
@@ -53,15 +53,15 @@ No heartbeat. No initiative. No autonomous behavior — unless something trigger
 **Truth 5 — AI output is not 100% reliable.**
 Agents will make mistakes. Ship bugs. Misunderstand requirements. Therefore: *you need permission levels* — what the agent can do alone, and what requires human approval. This is risk management, not a feature.
 
-From these five truths, the entire architecture of EVOX follows logically.
+From these five truths, the entire architecture of neXus follows logically.
 
 ---
 
-## What EVOX Actually Is
+## What neXus Actually Is
 
-EVOX is the **COO of your AI engineering team**. It doesn't write code — it makes sure your agents know what to do, remember what they've done, and coordinate without stepping on each other.
+neXus is the **COO of your AI engineering team**. It doesn't write code — it makes sure your agents know what to do, remember what they've done, and coordinate without stepping on each other.
 
-You define agents with roles, assign them tasks from Linear, and they work. You review, redirect, and make architecture decisions. EVOX handles the operations.
+You define agents with roles, assign them tasks from Linear, and they work. You review, redirect, and make architecture decisions. neXus handles the operations.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -71,7 +71,7 @@ You define agents with roles, assign them tasks from Linear, and they work. You 
 │                                                             │
 │ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ │
 │                                                             │
-│   🧠 EVOX — COO                                             │
+│   🧠 neXus — COO                                            │
 │   Orchestration · Memory · Communication                    │
 │                                                             │
 │   ┌───────┐  ┌───────┐  ┌───────┐  ┌───────┐              │
@@ -115,7 +115,7 @@ Each agent has:
 
 ## Architecture
 
-EVOX is built on one core principle: **Convex is the shared brain.**
+neXus is built on one core principle: **Convex is the shared brain.**
 
 Agents are *runtime-agnostic*. Whether they run via Claude Code, Cursor, or a future always-on daemon like OpenClaw — the persistent state lives in Convex. Swap the runtime, keep the memory.
 
@@ -149,10 +149,10 @@ Cold start to productive: ~30 seconds
 Real-time reactivity out of the box. When SAM updates a task status, LEO's dashboard reflects it instantly. No WebSocket boilerplate. No polling intervals. The database *is* the event system.
 
 **Why Linear over building our own task system?**
-Linear is where real engineering teams already work. EVOX syncs bi-directionally — agents pull tasks from Linear, and status changes push back. No context switching. No duplicate systems.
+Linear is where real engineering teams already work. neXus syncs bi-directionally — agents pull tasks from Linear, and status changes push back. No context switching. No duplicate systems.
 
 **Why runtime-agnostic?**
-The AI runtime landscape changes monthly. Locking into one runtime is a bet against the future. EVOX's value is in the **orchestration layer** (memory, communication, coordination) — not in which CLI tool executes the code.
+The AI runtime landscape changes monthly. Locking into one runtime is a bet against the future. neXus's value is in the **orchestration layer** (memory, communication, coordination) — not in which CLI tool executes the code.
 
 ---
 
@@ -185,8 +185,8 @@ The AI runtime landscape changes monthly. Locking into one runtime is a bet agai
 
 ```bash
 # Clone
-git clone https://github.com/sonpiaz/evox.git
-cd evox
+git clone https://github.com/khanglam0504/evox.git
+cd nexus
 
 # Install
 npm install
@@ -217,7 +217,7 @@ Open [http://localhost:3000](http://localhost:3000) and you'll see Mission Contr
 ## Project Structure
 
 ```
-evox/
+nexus/
 ├── .claude/           # Agent configuration + dispatch rules
 ├── app/               # Next.js App Router pages
 ├── components/        # React components (dashboard, agents, tasks)
@@ -257,15 +257,15 @@ Started Jan 31, 2026 · 9 sessions completed · 40+ tickets shipped
 
 A CEO sets the vision. Engineers execute. But who makes sure the right work happens in the right order, with the right context, at the right time?
 
-That's the COO. And that's what EVOX is for AI teams.
+That's the COO. And that's what neXus is for AI teams.
 
-Every feature exists because a fundamental constraint demands it. If a constraint doesn't demand it, we don't build it. This means EVOX will always be **lean** — but every piece is **load-bearing**. Nothing decorative. Nothing without a reason.
+Every feature exists because a fundamental constraint demands it. If a constraint doesn't demand it, we don't build it. This means neXus will always be **lean** — but every piece is **load-bearing**. Nothing decorative. Nothing without a reason.
 
 ---
 
 ## Contributing
 
-EVOX is open source and we welcome contributions. Whether it's:
+neXus is open source and we welcome contributions. Whether it's:
 
 - 🐛 Bug reports and fixes
 - 💡 Feature suggestions grounded in real problems
@@ -280,7 +280,7 @@ Please open an issue or PR. If you're proposing a new feature, explain **which t
 
 If this project resonates with you, a ⭐ helps others discover it.
 
-[![Star History Chart](https://api.star-history.com/svg?repos=sonpiaz/evox&type=Date)](https://star-history.com/#sonpiaz/evox&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=khanglam0504/evox&type=Date)](https://star-history.com/#khanglam0504/evox&Date)
 
 ---
 

@@ -18,7 +18,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "EVOX - Mission Control",
+  title: "neXus - Mission Control",
   description: "Agent coordination dashboard",
 };
 
