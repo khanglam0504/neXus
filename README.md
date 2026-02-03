@@ -44,18 +44,20 @@ The neXus workflow is designed to minimize human micromanagement while maximizin
 
 ```mermaid
 graph TD
-    User[Khang (Human)] -->|Requirements| Jason[Jason (PM)]
+    User["Khang (Human)"] -->|Requirements| Jason["Jason (PM)"]
     Jason -->|Debate & Plan| User
-    Jason -->|Approved Plan| Dashboard[neXus Dashboard]
-    Dashboard -->|Task Assignment| Agents
+    Jason -->|Approved Plan| Dashboard["neXus Dashboard"]
+    Dashboard -->|Task Assignment| Agents["Sub-Agents"]
     
-    subgraph Execution Loop
-        Agents -->|Code| Robert[Robert (Dev)]
-        Agents -->|UI| Luna[Luna (Design)]
-        Agents -->|Verify| Atlas[Atlas (QA)]
+    subgraph Execution
+        Agents -->|Code| Robert["Robert (Dev)"]
+        Agents -->|UI| Luna["Luna (Design)"]
+        Agents -->|Verify| Atlas["Atlas (QA)"]
     end
     
-    Execution Loop -->|PR & Report| Jason
+    Robert -->|PR & Report| Jason
+    Luna -->|PR & Report| Jason
+    Atlas -->|PR & Report| Jason
     Jason -->|Final Review| User
 ```
 
