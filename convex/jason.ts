@@ -14,6 +14,7 @@ export const jason = new Agent(components.agent, {
   name: "Jason",
   
   // The brain - using OpenAI GPT-4o
+  // @ts-expect-error - AI SDK v3 vs Convex Agent v2 type mismatch
   languageModel: openai.chat("gpt-4o"),
 
   // System Prompt
