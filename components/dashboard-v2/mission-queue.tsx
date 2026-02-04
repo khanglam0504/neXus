@@ -112,8 +112,8 @@ export function MissionQueue({
 
   return (
     <div className={`flex h-full flex-col ${className}`}>
-      <div className="flex shrink-0 items-center justify-between border-b border-border px-4 py-3">
-        <h2 className="text-sm font-semibold text-foreground">Mission Queue</h2>
+      <div className="flex shrink-0 flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-border px-3 sm:px-4 py-2 sm:py-3">
+        <h2 className="text-sm font-semibold text-foreground whitespace-nowrap">Mission Queue</h2>
         <DateFilter
           mode={dateMode}
           onModeChange={onDateModeChange}
