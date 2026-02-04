@@ -123,7 +123,7 @@ export function AgentProfile({
   const currentTaskDoc = currentTask as { title?: string; linearIdentifier?: string; linearUrl?: string } | null;
 
   return (
-    <div className="flex h-full flex-col overflow-hidden bg-background">
+    <div className="flex h-full flex-col bg-background overflow-y-auto sm:overflow-hidden">
       {!embedded && (
         <div className="flex shrink-0 items-center justify-between border-b border-border px-4 py-3">
           <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Agent Profile</h3>
@@ -193,7 +193,7 @@ export function AgentProfile({
       </div>
 
       {/* Tab content */}
-      <div className="flex-1 overflow-y-auto p-4 min-h-0">
+      <div className="flex-1 overflow-y-auto p-4 min-h-0 pb-24 sm:pb-4">
         {activeTab === "overview" && (
           <div className="space-y-4">
             <div>

@@ -41,11 +41,11 @@ export function AgentProfileModal({
       onClick={onClose}
     >
       <div
-        className="max-h-[90vh] w-full max-w-2xl overflow-hidden rounded-xl border border-border bg-card shadow-2xl flex flex-col"
+        className="h-[95vh] sm:h-auto sm:max-h-[90vh] w-full max-w-2xl rounded-xl border border-border bg-card shadow-2xl flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Agent Profile content — handles its own header */}
-        <div className="flex-1 min-h-0 overflow-hidden">
+        <div className="flex-1 min-h-0 overflow-y-auto">
           <AgentProfile
             agentId={agentId}
             name={name}
