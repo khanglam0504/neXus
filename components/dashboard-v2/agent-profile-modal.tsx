@@ -42,8 +42,8 @@ export function AgentProfileModal({
     >
       <div
         className={
-          // Mobile: full screen
-          "w-full h-full sm:h-auto sm:max-h-[90vh] sm:max-w-2xl sm:rounded-xl " +
+          // Mobile: full screen, Desktop: modal with scroll
+          "w-full h-full sm:h-[90vh] sm:max-w-2xl sm:rounded-xl " +
           "border-0 sm:border border-border bg-card shadow-2xl flex flex-col overflow-hidden"
         }
         onClick={(e) => e.stopPropagation()}
