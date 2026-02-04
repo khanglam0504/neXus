@@ -48,7 +48,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
       <body
-        className={`${ibmPlexSans.variable} ${ibmPlexMono.variable} font-sans antialiased bg-background text-foreground`}
+        className={`${ibmPlexSans.variable} ${ibmPlexMono.variable} font-mono antialiased bg-background text-foreground`}
       >
         <ThemeProvider>
           <ConvexClientProvider>
