@@ -46,7 +46,10 @@ export function TopBar({
       <header className="flex h-12 shrink-0 items-center justify-between border-b border-border bg-card px-2 sm:px-4">
         {/* Left: Logo */}
         <div className="flex items-center gap-2 sm:gap-4">
-          <h1 className="text-base sm:text-lg font-semibold text-foreground">neXus</h1>
+          <div className="flex items-center gap-2">
+            <img src="/icon-192.png" alt="neXus" className="h-6 w-6 sm:h-7 sm:w-7" />
+            <h1 className="text-base sm:text-lg font-semibold text-foreground">neXus</h1>
+          </div>
           <span className="hidden sm:inline text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             Command Center
           </span>
