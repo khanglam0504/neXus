@@ -49,7 +49,7 @@ export function TaskCard({ task, onClick, onAssigneeClick }: TaskCardProps) {
       type="button"
       onClick={onClick}
       className={cn(
-        "w-full rounded-lg border border-border bg-background p-3 text-left transition-colors hover:border-primary/30 hover:bg-accent",
+        "w-full rounded-lg border border-border bg-background p-2.5 sm:p-3 text-left transition-colors hover:border-primary/30 hover:bg-accent active:scale-[0.98]",
         "border-l-4",
         barColor
       )}

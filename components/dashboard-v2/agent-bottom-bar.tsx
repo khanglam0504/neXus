@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Plus, ExternalLink } from "lucide-react";
 import { AgentAvatar } from "@/components/ui/agent-avatar";
 
-/** Status dots — green=active, gray=idle */
 const statusDot: Record<string, string> = {
   online: "bg-emerald-400",
   busy: "bg-amber-400",
@@ -19,12 +18,24 @@ const statusDot: Record<string, string> = {
 const roleLabels: Record<string, string> = {
   master: "Master",
   pm: "PM",
-  backend: "Backend",
-  frontend: "Frontend",
-  fullstack: "Fullstack",
+  backend: "BE",
+  frontend: "FE",
+  fullstack: "FS",
   qa: "QA",
-  research: "Research",
+  research: "R&D",
   devops: "DevOps",
+};
+
+// Mobile short names
+const mobileRoleLabels: Record<string, string> = {
+  master: "🧠",
+  pm: "🧠",
+  backend: "⚙️",
+  frontend: "🎨",
+  fullstack: "🖐️",
+  qa: "🛡️",
+  research: "🔬",
+  devops: "🚀",
 };
 
 interface AgentBottomBarProps {
@@ -42,7 +53,6 @@ type BarAgent = {
   currentTaskIdentifier: string | null;
 };
 
-/** Agent list at bottom with Add Agents button */
 export function AgentBottomBar({ selectedAgentId, onAgentClick, className = "" }: AgentBottomBarProps) {
   const listAgents = useQuery(api.agents.list);
 
@@ -56,30 +66,29 @@ export function AgentBottomBar({ selectedAgentId, onAgentClick, className = "" }
   }));
 
   const handleAddAgents = () => {
-    // Open Convex Dashboard in new tab
     window.open("https://dashboard.convex.dev", "_blank");
   };
 
   return (
     <div
       className={cn(
-        "flex shrink-0 items-center gap-2 border-t border-border bg-card px-3 py-1.5",
+        "flex shrink-0 items-center gap-1.5 sm:gap-2 border-t border-border bg-card px-2 sm:px-3 py-1.5",
         className
       )}
     >
-      {/* Agents Label */}
-      <div className="flex items-center gap-1.5">
+      {/* Agents Label - hidden on mobile */}
+      <div className="hidden sm:flex items-center gap-1.5">
         <span className="text-[9px] tracking-[0.15em] uppercase text-muted-foreground">AGENTS</span>
         <span className="rounded bg-muted px-1 py-0.5 text-[9px] font-medium text-muted-foreground">
           {agents.length}
         </span>
       </div>
 
-      {/* Divider */}
-      <div className="h-5 w-px bg-border" />
+      {/* Divider - hidden on mobile */}
+      <div className="hidden sm:block h-5 w-px bg-border" />
 
       {/* Agent List */}
-      <div className="flex flex-1 items-center gap-1.5 overflow-x-auto">
+      <div className="flex flex-1 items-center gap-1 sm:gap-1.5 overflow-x-auto scrollbar-hide">
         {agents.map((a) => {
           const dot = statusDot[(a.status ?? "").toLowerCase()] ?? statusDot.offline;
           const isSelected = selectedAgentId === a._id;
@@ -89,13 +98,22 @@ export function AgentBottomBar({ selectedAgentId, onAgentClick, className = "" }
               type="button"
               onClick={() => onAgentClick(a._id)}
               className={cn(
-                "inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-left transition-all duration-150",
+                "inline-flex items-center gap-1 sm:gap-1.5 rounded-md border px-1.5 sm:px-2 py-1 text-left transition-all duration-150 shrink-0",
                 "border-border bg-background hover:border-primary/30 hover:bg-accent",
                 isSelected && "border-amber-400/50 bg-amber-400/10"
               )}
             >
               <AgentAvatar name={a.name} size={20} />
-              <div className="min-w-0">
+              
+              {/* Mobile: compact view */}
+              <div className="sm:hidden flex items-center gap-1">
+                <span className={cn("h-1.5 w-1.5 rounded-full", dot)} />
+                <span className="text-xs font-medium">{a.name.charAt(0)}</span>
+                <span className="text-[10px]">{mobileRoleLabels[a.role] ?? "👤"}</span>
+              </div>
+
+              {/* Desktop: full view */}
+              <div className="hidden sm:block min-w-0">
                 <div className="flex items-center gap-1.5">
                   <span className="text-xs font-semibold text-foreground">{a.name}</span>
                   <span className="text-[10px] text-muted-foreground">{roleLabels[a.role] ?? a.role}</span>
@@ -115,11 +133,11 @@ export function AgentBottomBar({ selectedAgentId, onAgentClick, className = "" }
         variant="outline"
         size="sm"
         onClick={handleAddAgents}
-        className="shrink-0 gap-1.5 h-7 text-xs px-2"
+        className="shrink-0 gap-1 sm:gap-1.5 h-7 text-xs px-1.5 sm:px-2"
       >
         <Plus className="h-3.5 w-3.5" />
-        Add Agents
-        <ExternalLink className="h-2.5 w-2.5 opacity-50" />
+        <span className="hidden sm:inline">Add Agents</span>
+        <ExternalLink className="h-2.5 w-2.5 opacity-50 hidden sm:inline" />
       </Button>
     </div>
   );

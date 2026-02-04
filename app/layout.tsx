@@ -18,8 +18,21 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "neXus - Mission Control",
-  description: "Agent coordination dashboard",
+  title: "neXus - Command Center",
+  description: "The Operating System for Autonomous Engineering Teams",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "neXus",
+  },
+  viewport: {
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
+  },
+  themeColor: "#f59e0b",
 };
 
 /** AGT-152: Single unified dashboard — no sidebar, no header; root is full-width dashboard */
