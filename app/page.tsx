@@ -74,7 +74,7 @@ export default function Home() {
       <ActivityDrawer open={activityDrawerOpen} onClose={() => setActivityDrawerOpen(false)} />
       <TaskDetailModal open={selectedTask !== null} task={selectedTask} onClose={() => setSelectedTask(null)} />
 
-      <div className="flex flex-1 min-h-0 flex-col overflow-hidden">
+      <div className="flex flex-1 min-h-0 flex-col overflow-hidden pb-14 sm:pb-0">
         <main className="flex-1 min-w-0 flex flex-col overflow-hidden">
           <MissionQueue
             date={date}

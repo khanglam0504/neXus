@@ -73,6 +73,8 @@ export function AgentBottomBar({ selectedAgentId, onAgentClick, className = "" }
     <div
       className={cn(
         "flex shrink-0 items-center gap-1.5 sm:gap-2 border-t border-border bg-card px-2 sm:px-3 py-1.5",
+        // Mobile: fixed at bottom
+        "fixed bottom-0 left-0 right-0 z-40 sm:relative sm:z-auto",
         className
       )}
     >
