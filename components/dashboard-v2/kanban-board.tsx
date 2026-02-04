@@ -1,9 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef } from "react";
 import { TaskCard } from "./task-card";
 import type { KanbanTask } from "./task-card";
-import { ChevronLeft, ChevronRight, BarChart3 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export type { KanbanTask };
@@ -25,8 +24,7 @@ interface KanbanBoardProps {
 }
 
 export function KanbanBoard({ tasks, onTaskClick, onAssigneeClick, className = "" }: KanbanBoardProps) {
-  const [mobileColumnIndex, setMobileColumnIndex] = useState(1); // Default to TODO
-  const [showMobileAnalytics, setShowMobileAnalytics] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   const byStatus = (status: KanbanStatus) => {
     if (status === "in_progress") {
@@ -45,138 +43,56 @@ export function KanbanBoard({ tasks, onTaskClick, onAssigneeClick, className = "
     return { backlog, todo, inProgress, done, total, completionRate };
   }, [tasks]);
 
-  const columnCounts = [counts.backlog, counts.todo, counts.inProgress, counts.done];
-
-  // Mobile: single column view with swipe
-  const handlePrevColumn = () => setMobileColumnIndex((i) => Math.max(0, i - 1));
-  const handleNextColumn = () => setMobileColumnIndex((i) => Math.min(COLUMNS.length - 1, i + 1));
-
   return (
     <div className={cn("flex h-full flex-col", className)}>
-      {/* Mobile column switcher */}
-      <div className="flex md:hidden items-center justify-between px-3 py-2 border-b border-border bg-card">
-        <button
-          onClick={handlePrevColumn}
-          disabled={mobileColumnIndex === 0}
-          className="p-2 rounded-lg hover:bg-accent disabled:opacity-30"
-        >
-          <ChevronLeft className="h-5 w-5" />
-        </button>
-        
-        <div className="flex items-center gap-2">
-          <span className="text-lg">{COLUMNS[mobileColumnIndex].emoji}</span>
-          <span className="font-medium">{COLUMNS[mobileColumnIndex].title}</span>
-          <span className="rounded-full bg-muted px-2 py-0.5 text-xs">
-            {columnCounts[mobileColumnIndex]}
-          </span>
-        </div>
-
-        <div className="flex items-center gap-1">
-          <button
-            onClick={() => setShowMobileAnalytics(!showMobileAnalytics)}
-            className={cn(
-              "p-2 rounded-lg hover:bg-accent",
-              showMobileAnalytics && "bg-accent"
-            )}
-          >
-            <BarChart3 className="h-5 w-5" />
-          </button>
-          <button
-            onClick={handleNextColumn}
-            disabled={mobileColumnIndex === COLUMNS.length - 1}
-            className="p-2 rounded-lg hover:bg-accent disabled:opacity-30"
-          >
-            <ChevronRight className="h-5 w-5" />
-          </button>
-        </div>
-      </div>
-
-      {/* Mobile analytics dropdown */}
-      {showMobileAnalytics && (
-        <div className="md:hidden border-b border-border bg-card p-3 animate-in slide-in-from-top-2">
-          <div className="grid grid-cols-2 gap-2">
-            <div className="rounded-lg border border-border bg-muted/50 p-2 text-center">
-              <div className="text-xl font-semibold text-amber-500">{counts.completionRate}%</div>
-              <div className="text-[10px] text-muted-foreground uppercase">Complete</div>
-            </div>
-            <div className="rounded-lg border border-border bg-muted/50 p-2 text-center">
-              <div className="text-xl font-semibold text-blue-500">{counts.inProgress}</div>
-              <div className="text-[10px] text-muted-foreground uppercase">In Progress</div>
-            </div>
-            <div className="rounded-lg border border-border bg-muted/50 p-2 text-center">
-              <div className="text-xl font-semibold text-yellow-500">{counts.todo}</div>
-              <div className="text-[10px] text-muted-foreground uppercase">Queue</div>
-            </div>
-            <div className="rounded-lg border border-border bg-muted/50 p-2 text-center">
-              <div className="text-xl font-semibold text-green-500">{counts.done}</div>
-              <div className="text-[10px] text-muted-foreground uppercase">Done</div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Mobile: Single column view */}
-      <div className="md:hidden flex-1 overflow-y-auto p-3">
-        {(() => {
-          const col = COLUMNS[mobileColumnIndex];
-          const columnTasks = byStatus(col.status);
-          const isEmpty = columnTasks.length === 0;
-          
-          if (isEmpty) {
-            return (
-              <p className="py-12 text-center text-sm text-muted-foreground">
-                No tasks in {col.title.toLowerCase()}
-              </p>
-            );
-          }
-          
-          return (
-            <div className="space-y-2">
-              {columnTasks.map((task) => (
-                <TaskCard
-                  key={task.id}
-                  task={task}
-                  onClick={() => onTaskClick?.(task)}
-                  onAssigneeClick={onAssigneeClick}
-                />
-              ))}
-            </div>
-          );
-        })()}
-      </div>
-
-      {/* Mobile: Column dots indicator */}
-      <div className="md:hidden flex justify-center gap-1.5 py-2 border-t border-border bg-card">
-        {COLUMNS.map((col, i) => (
-          <button
-            key={col.status}
-            onClick={() => setMobileColumnIndex(i)}
-            className={cn(
-              "h-2 w-2 rounded-full transition-all",
-              i === mobileColumnIndex ? "bg-primary w-4" : "bg-muted-foreground/30"
-            )}
-          />
-        ))}
-      </div>
-
-      {/* Desktop: Full kanban view */}
-      <div className="hidden md:flex h-full gap-3 overflow-x-auto p-4">
+      {/* Kanban board - horizontal scroll with snap on mobile */}
+      <div
+        ref={scrollRef}
+        className={cn(
+          "flex h-full gap-3 overflow-x-auto p-3 sm:p-4",
+          // Mobile: snap scrolling like Trello
+          "snap-x snap-mandatory scroll-smooth",
+          // Hide scrollbar on mobile for cleaner look
+          "scrollbar-hide sm:scrollbar-default"
+        )}
+      >
         {COLUMNS.map((col) => {
           const columnTasks = byStatus(col.status);
           const isEmpty = columnTasks.length === 0;
           const isDone = col.status === "done";
+          
           return (
             <div
               key={col.status}
-              className="flex flex-1 min-w-[200px] lg:min-w-[220px] flex-col rounded-lg border border-border bg-card"
+              className={cn(
+                "flex flex-col rounded-lg border border-border bg-card",
+                // Mobile: full width columns with snap
+                "w-[85vw] min-w-[85vw] snap-center",
+                // Tablet: slightly smaller
+                "sm:w-[45vw] sm:min-w-[280px]",
+                // Desktop: flexible
+                "md:w-auto md:min-w-[220px] md:flex-1"
+              )}
             >
-              <div className="flex items-center justify-between border-b border-border px-3 py-2">
-                <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{col.title}</h3>
-                <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">{columnTasks.length}</span>
+              {/* Column header */}
+              <div className="flex items-center justify-between border-b border-border px-3 py-2 shrink-0">
+                <div className="flex items-center gap-2">
+                  <span className="text-base sm:text-sm">{col.emoji}</span>
+                  <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                    {col.title}
+                  </h3>
+                </div>
+                <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+                  {columnTasks.length}
+                </span>
               </div>
+              
+              {/* Tasks */}
               <div className="flex-1 space-y-2 overflow-y-auto p-2 min-h-0">
-                {isEmpty && isDone ? (
-                  <p className="py-6 text-center text-xs text-muted-foreground">No completed tasks</p>
+                {isEmpty ? (
+                  <p className="py-8 text-center text-sm text-muted-foreground">
+                    {isDone ? "No completed tasks" : `No tasks in ${col.title.toLowerCase()}`}
+                  </p>
                 ) : (
                   columnTasks.map((task) => (
                     <TaskCard
@@ -192,7 +108,7 @@ export function KanbanBoard({ tasks, onTaskClick, onAssigneeClick, className = "
           );
         })}
 
-        {/* Desktop: Analytics panel */}
+        {/* Analytics panel - only on large screens */}
         <div className="hidden lg:flex w-52 shrink-0 flex-col rounded-lg border border-border bg-card">
           <div className="border-b border-border px-3 py-2">
             <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Analytics</h3>

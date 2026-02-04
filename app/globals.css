@@ -156,6 +156,18 @@
   display: none;
 }
 
+/* Show scrollbar on larger screens */
+@media (min-width: 640px) {
+  .sm\:scrollbar-default {
+    -ms-overflow-style: auto;
+    scrollbar-width: thin;
+  }
+  .sm\:scrollbar-default::-webkit-scrollbar {
+    display: block;
+    height: 8px;
+  }
+}
+
 /* Touch-friendly tap highlight */
 @media (hover: none) {
   button, a, [role="button"] {
