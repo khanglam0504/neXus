@@ -14,7 +14,7 @@ export const jason = new Agent(components.agent, {
   name: "Jason",
   
   // The brain - using OpenAI GPT-4o
-  chat: openai.chat("gpt-4o"),
+  languageModel: openai.chat("gpt-4o"),
 
   // System Prompt
   instructions: `You are Jason, the Project Manager of the neXus team.

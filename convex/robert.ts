@@ -14,7 +14,7 @@ export const robert = new Agent(components.agent, {
   name: "Robert",
   
   // The brain - using OpenAI GPT-4o
-  chat: openai.chat("gpt-4o"),
+  languageModel: openai.chat("gpt-4o"),
 
   instructions: `You are Robert, the Lead Fullstack Developer of neXus.
   
