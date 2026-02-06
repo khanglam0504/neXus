@@ -123,25 +123,23 @@ export function AgentProfile({
   const currentTaskDoc = currentTask as { title?: string; linearIdentifier?: string; linearUrl?: string } | null;
 
   return (
-    <div className="flex h-full flex-col bg-background">
-      {/* Sticky header on mobile */}
-      <div className="sticky top-0 z-10 bg-background">
-        {!embedded && (
-          <div className="flex shrink-0 items-center justify-between border-b border-border px-4 py-3">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Agent Profile</h3>
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground text-xl"
-              aria-label="Close"
-            >
-              ×
-            </button>
-          </div>
-        )}
+    <div className="flex h-full flex-col overflow-hidden bg-background">
+      {!embedded && (
+        <div className="flex shrink-0 items-center justify-between border-b border-border px-4 py-3">
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Agent Profile</h3>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+            aria-label="Close"
+          >
+            ×
+          </button>
+        </div>
+      )}
 
-        {/* Identity + Status — compact */}
-        <div className="shrink-0 border-b border-border px-4 py-3">
+      {/* Identity + Status — compact */}
+      <div className="shrink-0 border-b border-border px-4 py-3">
         <div className="flex items-center gap-3">
           <AgentAvatar name={name} size={32} />
           <div className="min-w-0 flex-1">
@@ -171,31 +169,30 @@ export function AgentProfile({
             {currentTaskDoc.title ?? ""}
           </p>
         )}
-        </div>
-
-        {/* 6 Tabs */}
-        <div className="flex shrink-0 border-b border-border overflow-x-auto scrollbar-hide">
-          {TABS.map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => setActiveTab(tab.id)}
-              className={cn(
-                "shrink-0 px-3 py-2 text-xs font-semibold uppercase tracking-wider",
-                activeTab === tab.id
-                  ? "border-b-2 border-foreground text-foreground"
-                  : "text-muted-foreground hover:text-foreground/80"
-              )}
-            >
-              {tab.id === "tasks" && taskCount > 0 ? `Tasks (${taskCount})` : tab.label}
-              {tab.id === "messages" && Array.isArray(messagesForAgent) && messagesForAgent.length > 0 ? ` (${messagesForAgent.length})` : ""}
-              {tab.id === "memory" && Array.isArray(dailyNotes) && dailyNotes.length > 0 ? ` (${dailyNotes.length})` : ""}
-            </button>
-          ))}
-        </div>
       </div>
 
-      {/* Tab content - scrollable */}
+      {/* 6 Tabs */}
+      <div className="flex shrink-0 border-b border-border overflow-x-auto">
+        {TABS.map((tab) => (
+          <button
+            key={tab.id}
+            type="button"
+            onClick={() => setActiveTab(tab.id)}
+            className={cn(
+              "shrink-0 px-3 py-2 text-xs font-semibold uppercase tracking-wider",
+              activeTab === tab.id
+                ? "border-b-2 border-foreground text-foreground"
+                : "text-muted-foreground hover:text-foreground/80"
+            )}
+          >
+            {tab.id === "tasks" && taskCount > 0 ? `Tasks (${taskCount})` : tab.label}
+            {tab.id === "messages" && Array.isArray(messagesForAgent) && messagesForAgent.length > 0 ? ` (${messagesForAgent.length})` : ""}
+            {tab.id === "memory" && Array.isArray(dailyNotes) && dailyNotes.length > 0 ? ` (${dailyNotes.length})` : ""}
+          </button>
+        ))}
+      </div>
+
+      {/* Tab content */}
       <div className="flex-1 overflow-y-auto p-4 min-h-0">
         {activeTab === "overview" && (
           <div className="space-y-4">

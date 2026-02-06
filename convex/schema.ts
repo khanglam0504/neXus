@@ -251,6 +251,38 @@ export default defineSchema({
     .index("by_task", ["taskId", "timestamp"])
     .index("by_linearId", ["linearIdentifier", "timestamp"]),
 
+  // LEAVE REQUESTS (Internal App)
+  leave_requests: defineTable({
+    userId: v.string(),           // User ID (Google Email or Clerk ID)
+    userEmail: v.string(),
+    userName: v.string(),
+    team: v.optional(v.string()), // Auto-filled from profile
+    
+    category: v.union(v.literal("leave"), v.literal("late")), // Leave vs Late
+    type: v.string(),             // Annual, Sick, WFH, Late Arrival, Early Departure
+    
+    // For Leave (Date Range)
+    startDate: v.optional(v.number()), // Unix timestamp
+    endDate: v.optional(v.number()),
+    durationDays: v.optional(v.number()), // Calculated working days
+    session: v.optional(v.union(v.literal("full"), v.literal("morning"), v.literal("afternoon"))),
+
+    // For Late/Early
+    targetDate: v.optional(v.number()),
+    targetTime: v.optional(v.string()), // "10:30"
+    minutesLate: v.optional(v.number()), // Estimated minutes late
+
+    reason: v.string(),
+    status: v.union(v.literal("pending"), v.literal("approved"), v.literal("rejected")),
+    approverNote: v.optional(v.string()),
+    
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_status", ["status"])
+    .index("by_created_at", ["createdAt"]),
+
   // AGT-115: Notification system (enhanced for @mentions)
   notifications: defineTable({
     to: v.id("agents"),

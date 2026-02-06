@@ -17,7 +17,7 @@ import type { DateFilterMode } from "@/components/dashboard-v2/date-filter";
 /** AGT-181: 2-panel layout — [Sidebar 180px] | [Kanban flex-1]. Agent Profile → Modal, Activity → Drawer */
 export default function Home() {
   const [date, setDate] = useState(new Date());
-  const [dateMode, setDateMode] = useState<DateFilterMode>("week");
+  const [dateMode, setDateMode] = useState<DateFilterMode>("day");
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [activityDrawerOpen, setActivityDrawerOpen] = useState(false);
   const [selectedAgentId, setSelectedAgentId] = useState<Id<"agents"> | null>(null);
@@ -74,7 +74,7 @@ export default function Home() {
       <ActivityDrawer open={activityDrawerOpen} onClose={() => setActivityDrawerOpen(false)} />
       <TaskDetailModal open={selectedTask !== null} task={selectedTask} onClose={() => setSelectedTask(null)} />
 
-      <div className="flex flex-1 min-h-0 flex-col overflow-hidden pb-14 sm:pb-0">
+      <div className="flex flex-1 min-h-0 flex-col overflow-hidden">
         <main className="flex-1 min-w-0 flex flex-col overflow-hidden">
           <MissionQueue
             date={date}
