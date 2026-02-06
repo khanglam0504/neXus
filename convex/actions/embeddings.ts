@@ -3,32 +3,31 @@
 /**
  * Embedding Actions - Phase 2: Semantic Memory
  * 
- * Uses OpenAI text-embedding-3-small (1536 dimensions)
+ * Uses Google Gemini text-embedding-004 (768 dimensions)
  * for vector search on agent memory.
  */
 import { internalAction } from "../_generated/server";
 import { v } from "convex/values";
-import OpenAI from "openai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 /**
  * Generate embedding vector for text
- * Returns 1536-dimensional vector
+ * Returns 768-dimensional vector (Gemini text-embedding-004)
  */
 export const generateEmbedding = internalAction({
   args: {
     text: v.string(),
   },
   handler: async (ctx, args): Promise<number[]> => {
-    // Initialize OpenAI client inside handler to avoid module-level credential check
-    const openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-    });
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      throw new Error("GEMINI_API_KEY environment variable is required");
+    }
     
-    const response = await openai.embeddings.create({
-      model: "text-embedding-3-small",
-      input: args.text,
-    });
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: "text-embedding-004" });
     
-    return response.data[0].embedding;
+    const result = await model.embedContent(args.text);
+    return result.embedding.values;
   },
 });
