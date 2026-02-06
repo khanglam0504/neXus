@@ -14,7 +14,7 @@ interface AgentProfileModalProps {
   onClose: () => void;
 }
 
-/** AGT-181: Agent Profile Modal — opens on sidebar agent click, matches Settings modal style */
+/** AGT-181: Agent Profile Modal — fullscreen on mobile, modal on desktop */
 export function AgentProfileModal({
   open,
   agentId,
@@ -37,24 +37,25 @@ export function AgentProfileModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 sm:backdrop-blur-sm sm:p-4"
       onClick={onClose}
     >
       <div
-        className="max-h-[90vh] w-full max-w-2xl overflow-hidden rounded-xl border border-border bg-card shadow-2xl flex flex-col"
+        className={
+          // Mobile: full screen, Desktop: modal with scroll
+          "w-full h-full sm:h-[90vh] sm:max-w-2xl sm:rounded-xl " +
+          "border-0 sm:border border-border bg-card shadow-2xl flex flex-col overflow-hidden"
+        }
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Agent Profile content — handles its own header */}
-        <div className="flex-1 min-h-0 overflow-hidden">
-          <AgentProfile
-            agentId={agentId}
-            name={name}
-            role={role}
-            status={status}
-            avatar={avatar}
-            onClose={onClose}
-          />
-        </div>
+        <AgentProfile
+          agentId={agentId}
+          name={name}
+          role={role}
+          status={status}
+          avatar={avatar}
+          onClose={onClose}
+        />
       </div>
     </div>
   );
