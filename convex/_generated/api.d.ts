@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as actions_embeddings from "../actions/embeddings.js";
 import type * as activities from "../activities.js";
 import type * as activityEvents from "../activityEvents.js";
 import type * as agentActions from "../agentActions.js";
@@ -23,6 +24,7 @@ import type * as heartbeat from "../heartbeat.js";
 import type * as http from "../http.js";
 import type * as jason from "../jason.js";
 import type * as linearSync from "../linearSync.js";
+import type * as memory from "../memory.js";
 import type * as mentions from "../mentions.js";
 import type * as messages from "../messages.js";
 import type * as messaging from "../messaging.js";
@@ -46,6 +48,7 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  "actions/embeddings": typeof actions_embeddings;
   activities: typeof activities;
   activityEvents: typeof activityEvents;
   agentActions: typeof agentActions;
@@ -61,6 +64,7 @@ declare const fullApi: ApiFromModules<{
   http: typeof http;
   jason: typeof jason;
   linearSync: typeof linearSync;
+  memory: typeof memory;
   mentions: typeof mentions;
   messages: typeof messages;
   messaging: typeof messaging;

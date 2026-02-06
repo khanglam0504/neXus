@@ -367,8 +367,15 @@ export default defineSchema({
     createdAt: v.number(),
     updatedAt: v.number(),
     version: v.number(), // Optimistic concurrency
+    // Phase 2: Semantic Memory - Vector embedding for recall
+    embedding: v.optional(v.array(v.float64())), // 1536 dims (text-embedding-3-small)
   })
     .index("by_agent_type", ["agentId", "type"])
     .index("by_agent_date", ["agentId", "date"])
-    .index("by_type", ["type"]),
+    .index("by_type", ["type"])
+    .vectorIndex("by_embedding", {
+      vectorField: "embedding",
+      dimensions: 1536,
+      filterFields: ["agentId", "type"],
+    }),
 });
