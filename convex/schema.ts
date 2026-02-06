@@ -368,14 +368,14 @@ export default defineSchema({
     updatedAt: v.number(),
     version: v.number(), // Optimistic concurrency
     // Phase 2: Semantic Memory - Vector embedding for recall
-    embedding: v.optional(v.array(v.float64())), // 768 dims (Gemini text-embedding-004)
+    embedding: v.optional(v.array(v.float64())), // 3072 dims (Gemini gemini-embedding-001)
   })
     .index("by_agent_type", ["agentId", "type"])
     .index("by_agent_date", ["agentId", "date"])
     .index("by_type", ["type"])
     .vectorIndex("by_embedding", {
       vectorField: "embedding",
-      dimensions: 768,
+      dimensions: 3072,
       filterFields: ["agentId", "type"],
     }),
 });

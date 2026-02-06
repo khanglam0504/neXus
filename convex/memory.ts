@@ -5,7 +5,7 @@
  * to persist and recall context across sessions.
  */
 import { v } from "convex/values";
-import { mutation, query, action, internalMutation, internalQuery, ActionCtx } from "./_generated/server";
+import { mutation, query, action, internalMutation, internalQuery, internalAction, ActionCtx } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { Id, Doc } from "./_generated/dataModel";
 
@@ -128,7 +128,7 @@ export const searchMemory = action({
     });
     
     // 2. Search memories using vector search
-    const results: MemoryResult[] = await ctx.runQuery(internal.memory.vectorSearchInternal, {
+    const results: MemoryResult[] = await ctx.runAction(internal.memory.vectorSearchInternal, {
       agentId,
       embedding: queryEmbedding,
       limit,
@@ -142,32 +142,47 @@ export const searchMemory = action({
  * Internal query for vector search
  * Uses Convex vector search API
  */
-export const vectorSearchInternal = internalQuery({
+export const vectorSearchInternal = internalAction({
   args: {
     agentId: v.id("agents"),
     embedding: v.array(v.float64()),
     limit: v.number(),
   },
-  returns: v.array(memoryResultValidator),
   handler: async (ctx, args): Promise<MemoryResult[]> => {
-    // Use Convex vector search
-    const results = await ctx.db
-      .query("agentMemory")
-      .withSearchIndex("by_embedding", (q) =>
-        q.vectorSearch("embedding", args.embedding).eq("agentId", args.agentId)
-      )
-      .take(args.limit);
+    // Use Convex vector search API
+    const results = await ctx.vectorSearch("agentMemory", "by_embedding", {
+      vector: args.embedding,
+      limit: args.limit,
+      filter: (q) => q.eq("agentId", args.agentId),
+    });
     
-    // Map to return format with score
-    return results.map((memory, index) => ({
-      _id: memory._id,
-      content: memory.content,
-      type: memory.type,
-      date: memory.date,
-      createdAt: memory.createdAt,
-      // Approximate score based on order (Convex returns ordered by similarity)
-      score: 1 - (index * 0.1),
-    }));
+    // Fetch full documents
+    const memories: MemoryResult[] = [];
+    for (const result of results) {
+      const memory = await ctx.runQuery(internal.memory.getMemoryById, { id: result._id });
+      if (memory) {
+        memories.push({
+          _id: memory._id,
+          content: memory.content,
+          type: memory.type,
+          date: memory.date,
+          createdAt: memory.createdAt,
+          score: result._score,
+        });
+      }
+    }
+    
+    return memories;
+  },
+});
+
+/**
+ * Get memory by ID (internal helper)
+ */
+export const getMemoryById = internalQuery({
+  args: { id: v.id("agentMemory") },
+  handler: async (ctx, args) => {
+    return await ctx.db.get(args.id);
   },
 });
 
