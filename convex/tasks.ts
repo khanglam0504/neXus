@@ -122,6 +122,17 @@ export const get = query({
   },
 });
 
+// READ - Get task by Linear Identifier (e.g. AGT-123)
+export const getByLinearIdentifier = query({
+  args: { linearIdentifier: v.string() },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("tasks")
+      .withIndex("by_linearIdentifier", (q) => q.eq("linearIdentifier", args.linearIdentifier))
+      .first();
+  },
+});
+
 // READ - Get tasks by status
 export const getByStatus = query({
   args: {
